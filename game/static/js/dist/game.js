@@ -67,11 +67,9 @@ class GameReward {
 
     <div class="game-reward-field">
         <div class="game-reward-field-item1">
-            
         </div>
 
         <div class="game-reward-field-item2">
-            
         </div>
         
     </div>
