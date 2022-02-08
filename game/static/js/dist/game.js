@@ -3,6 +3,7 @@ class GameMenu {
         this.root = root;
         this.$menu = $(`
 <div class="game-menu">
+<audio class="ac-game-menu-bgm" src="../../audio/menu/background1.mp3" preload="auto" autoplay="autoplay" loop="loop"></audio>
     <div class="game-menu-field">
         <div class="game-menu-field-item game-menu-field-item-startgame">
             开始游戏
