@@ -31,6 +31,8 @@ class GameMenu {
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
         this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
+        this.bgSound1 = document.getElementById("bgMusic");
+
         this.start();
     }
     start()
@@ -40,24 +42,26 @@ class GameMenu {
     add_listening_events()
     {
         let outer=this;
-        let count=0;
         this.$startgame.click(function(){
-            var bgSound = document.getElementById("bgMusic");
-            count++;
-            if(count%2==1) bgSound.play();
-            else bgSound.pause();
-            
-            
+
+            outer.bgSound1.play();
+
+            outer.hide();
+            outer.root.playground.show();
         });
         this.$reward.click(function(){
             outer.hide();
             outer.root.$reward.show();
+
+            outer.bgSound1.pause();
+            
             var bgSound = document.getElementById("reward-bgm");
             bgSound.play();
         });
 
         this.$setting.click(function(){
-
+            outer.hide();
+            outer.root.$setting.show();
         });
     }
 

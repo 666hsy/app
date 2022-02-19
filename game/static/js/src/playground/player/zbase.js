@@ -26,6 +26,12 @@ class Player extends GameObject {
     start() {
         if (this.is_me) 
             this.add_listening_events();
+        else
+        {
+            let tx=Math.random()*this.playground.width;
+            let ty=Math.random()*this.playground.height;
+            this.move_to(tx,ty);
+        }
     }
 
     add_listening_events() {
@@ -33,13 +39,45 @@ class Player extends GameObject {
         this.playground.game_map.$canvas.on("contextmenu", function() {
             return false;
         });
+
         this.playground.game_map.$canvas.mousedown(function(e) {
             if (e.which === 3)
             {
                 new ClickParticle(outer.playground, e.clientX, e.clientY, "rgba(255,255,255,0.5)");
                 outer.move_to(e.clientX, e.clientY);
             }
+
         });
+
+        this.playground.game_map.$canvas.on("mousemove", function (e) {  //获取鼠标位置
+            outer.mouseX = e.clientX;
+            outer.mouseY = e.clientY;
+        });
+
+
+        this.playground.game_map.$canvas.keydown(function(e){
+            if (e.which === 81) {
+                outer.cur_skill="fireball";
+                outer.come_skill(outer.mouseX,outer.mouseY,"fireball");
+            }
+        });
+    }
+
+    come_skill(tx,ty,skill)
+    {
+        if(skill==="fireball")
+        {
+            let x = this.x, y = this.y;
+            let radius = 7;
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let color = "plum";
+            if(this.is_me)
+                color="red";
+            let speed = this.playground.height*0.5;
+            let move_length = 600;
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+        }
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -56,24 +94,98 @@ class Player extends GameObject {
     }
 
     update() {
+
+        this.update_win();
         this.spent_time += this.timedelta / 1000;
-        if (this.move_length < this.eps) {
-            this.move_length = 0;
-            this.vx = this.vy = 0;
-        } else {
-            let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
-            this.x += this.vx * moved;
-            this.y += this.vy * moved;
-            this.move_length -= moved;
+
+        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0){
+            let player=this.playground.players[0];
+            let tx=player.x+player.speed*this.vx*this.timedelta/1000*0.3;
+            let ty=player.y+player.speed*this.vy*this.timedelta/1000*0.3;
+            this.come_skill(tx,ty,"fireball");
+        }
+
+
+        if(this.damage_speed>10)
+        {
+            this.vx=this.vy=0;
+            this.move_length=0;
+            this.x+=this.damage_x*this.damage_speed*this.timedelta/1000;
+            this.y+=this.damage_y*this.damage_speed*this.timedelta/1000;
+            this.damage_speed*=this.friction;
+        }
+        else
+        {
+            if (this.move_length < this.eps) {
+                this.move_length = 0;
+                this.vx = this.vy = 0;
+                if(!this.is_me)
+                {
+                    let tx=Math.random()*this.playground.width;
+                    let ty=Math.random()*this.playground.height;
+                    this.move_to(tx,ty);
+                }
+            } else {
+                let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
+                this.x += this.vx * moved;
+                this.y += this.vy * moved;
+                this.move_length -= moved;
+            }
         }
         this.render();
     }
+
+    update_win() {
+        if (this.is_me === true && this.playground.players.length === 1) {
+            this.playground.score_board.win();
+        }
+    }
+
 
     render() {
             this.ctx.beginPath();
             this.ctx.arc(this.x , this.y, this.radius, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
+    }
+
+    is_attacked(angle,damage)
+    {
+        for(let i=0;i<20+Math.random()*10;i++){
+            let x=this.x,y=this.y;
+            let radius=this.radius*Math.random()*0.1;
+            let angle=Math.PI*2*Math.random();
+            let vx=Math.cos(angle),vy=Math.sin(angle);
+            let color=this.color;
+            let speed=this.speed*10;
+            let move_length=this.radius*Math.random()*3;
+            new Particle(this.playground,x,y,radius,vx,vy,color,speed,move_length);
+        }
+
+        this.radius-=damage;
+        this.speed*=2;
+
+        if(this.radius<10)
+        {
+            this.destroy();
+            return false;
+        }
+        this.damage_x=Math.cos(angle);
+        this.damage_y=Math.sin(angle);
+        this.damage_speed=damage*80;
+        this.speed*=0.8;
+    }
+
+    on_destroy()
+    {
+        if(this.is_me===true)
+            this.playground.score_board.lose();
+        for(let i=0;i<this.playground.players.length;i++){
+            if(this.playground.players[i]===this)
+            {
+                this.playground.players.splice(i,1);
+            }
+        }
     }
 
 }

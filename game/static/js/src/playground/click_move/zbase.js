@@ -12,7 +12,6 @@ class ClickParticle extends GameObject {
         this.vy = Math.sin(this.angle);
 
         this.radius = 10;
-        //this.eps = 0.0001;
     }
 
     start() {
@@ -23,7 +22,7 @@ class ClickParticle extends GameObject {
             this.destroy();
             return false;
         }
-        this.radius *= 1.05;
+        this.radius *= 1.08;
         this.render();
     }
 

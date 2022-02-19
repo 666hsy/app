@@ -31,6 +31,30 @@
     transition: 100ms;
 }
 
+.game-setting{
+    width: 100%;
+    height: 100%;
+    background-image: url("/static/image/setting/background.jpg");
+    background-size: 100% 100%;
+}
+
+.game-setting-field {
+    width: 80%;
+    height: 40%;
+    position: relative;
+    top: 15%;
+    left: 15%;
+}
+
+.game-setting-field-item {
+    display: inline;
+}
+
+.game-setting-field-item  > img{
+    width: 17%;
+    height: 60%;
+}
+
 .game-reward{
     width: 100%;
     height: 100%;
@@ -77,4 +101,25 @@
     height: 100%;
     user-select: none;
     /* background-color: grey; */
+}
+
+.game-turn-back:hover {
+    transform: scale(1.2);
+    transition: 100ms;
+}
+.game-turn-back{
+    user-select: none;
+    position:absolute;
+    top:85%;
+    left: 85%;
+    color: white;
+    height: 8vh;
+    width: 12vw;
+    font-size: 6vh;
+    font-style: italic;
+    text-align: center;
+    background-color: rgba(39,21,28, 0.6);
+    border-radius: 10px;
+    letter-spacing: 0.5vw;
+    cursor: pointer;
 }

@@ -13,21 +13,31 @@ class GameReward {
 
         <div class="game-reward-field-item2">
         </div>
-        
+    </div>
+
+    <div class='game-turn-back'>
+        返回
     </div>
 </div>
 `);
         this.hide();
         this.root.$game.append(this.$reward);
-        // this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
+        this.$turn_back = this.$setting.find('.game-turn-back');
         // this.$reward=this.$menu.find('.game-menu-field-item-reward');
         // this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.start();
     }
-    start()
-    {
+    start() {
+        this.add_listening_events();
+    }
 
+    add_listening_events() {
+        let outer = this;
+        this.$turn_back.click(function() {
+            outer.hide();
+            outer.root.$menu.show();
+        });
     }
 
     show()
