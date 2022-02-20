@@ -53,6 +53,7 @@
 .game-setting-field-item  > img{
     width: 17%;
     height: 60%;
+    cursor: pointer;
 }
 
 .game-reward{

@@ -32,6 +32,7 @@ class GameMenu {
         this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
+        this.bgSound2 = document.getElementById("reward-bgm");
 
         this.start();
     }
@@ -43,7 +44,6 @@ class GameMenu {
     {
         let outer=this;
         this.$startgame.click(function(){
-
             outer.bgSound1.play();
 
             outer.hide();
@@ -54,9 +54,7 @@ class GameMenu {
             outer.root.$reward.show();
 
             outer.bgSound1.pause();
-            
-            var bgSound = document.getElementById("reward-bgm");
-            bgSound.play();
+            outer.bgSound2.play();
         });
 
         this.$setting.click(function(){
@@ -249,6 +247,12 @@ class Player extends GameObject {
 
         this.cur_skill = null;
 
+        if(this.is_me)
+        {
+            this.img = new Image();
+            this.img.src = this.playground.root.$setting.hero;
+        }
+
     }
 
     start() {
@@ -371,10 +375,24 @@ class Player extends GameObject {
 
 
     render() {
+        if(this.is_me)
+        {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+            this.ctx.restore();
+        }
+        else
+        {
             this.ctx.beginPath();
             this.ctx.arc(this.x , this.y, this.radius, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
+                        
+        }
     }
 
     is_attacked(angle,damage)
@@ -426,11 +444,11 @@ class ScoreBoard extends GameObject {
         this.state = null;  // win: 胜利，lose：失败
 
         this.win_img = new Image();
-        this.win_img.src = "https://cdn.acwing.com/media/article/image/2021/12/17/1_8f58341a5e-win.png";
+        this.win_img.src = "https://img0.baidu.com/it/u=4030779468,445934973&fm=253&fmt=auto&app=138&f=JPEG?w=567&h=334";
         //this.win_img.src = "./../../../static/image/playground/win.gif";
 
         this.lose_img = new Image();
-        this.lose_img.src = "https://cdn.acwing.com/media/article/image/2021/12/17/1_9254b5f95e-lose.png";
+        this.lose_img.src = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwx3.sinaimg.cn%2Flarge%2F006cSBLKgy1fygwp6unafj304c04y0sr.jpg&refer=http%3A%2F%2Fwx3.sinaimg.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1647950615&t=8df7970c36727e59665ee57f2fa28a74";
         //this.lose_img.src = "./../../..static/image/playground/lose.gif";
     }
 
@@ -444,6 +462,7 @@ class ScoreBoard extends GameObject {
 
         $canvas.on('click', function() {
             outer.playground.hide();
+            outer.playground.root.$menu.bgSound1.pause();
             outer.playground.root.$menu.show();
         });
     }
@@ -639,7 +658,7 @@ class GameReward {
 `);
         this.hide();
         this.root.$game.append(this.$reward);
-        // this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
+        this.$turn_back = this.$reward.find('.game-turn-back');
         // this.$reward=this.$menu.find('.game-menu-field-item-reward');
         // this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
@@ -652,6 +671,7 @@ class GameReward {
     add_listening_events() {
         let outer = this;
         this.$turn_back.click(function() {
+            outer.root.$menu.bgSound2.pause();
             outer.hide();
             outer.root.$menu.show();
         });
@@ -670,6 +690,7 @@ class GameReward {
 class GameSetting {
     constructor(root) {
         this.root = root;
+        this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
         this.$setting = $(`
 <div class="game-setting">
     <div class="game-reward-title">
@@ -677,19 +698,19 @@ class GameSetting {
     </div>
     <div class="game-setting-field">
         <div class="game-setting-field-item">
-            <img src="../../static/image/setting/1.jpg" />
+            <img class ="img-1" src="../../static/image/setting/1.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img src="../../static/image/setting/2.jpg" />
+            <img class ="img-2" src="../../static/image/setting/2.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img src="../../static/image/setting/3.jpg" />
+            <img class ="img-3" src="../../static/image/setting/3.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img src="../../static/image/setting/4.jpg" />
+            <img class ="img-4" src="../../static/image/setting/4.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img src="../../static/image/setting/5.jpg" />
+            <img class ="img-5" src="../../static/image/setting/5.jpg" />
         </div>
     </div>
     <div class='game-turn-back'>
@@ -700,7 +721,11 @@ class GameSetting {
         this.hide();
         this.root.$game.append(this.$setting);
         this.$turn_back = this.$setting.find('.game-turn-back');
-        // this.$choose_hero = this.$setting.find('.jq_content_setting_option_select_hero');
+        this.$img_1 =  this.$setting.find('.img-1');
+        this.$img_2 =  this.$setting.find('.img-2');
+        this.$img_3 =  this.$setting.find('.img-3');
+        this.$img_4 =  this.$setting.find('.img-4');
+        this.$img_5 =  this.$setting.find('.img-5');
 
         this.start();
     }
@@ -715,10 +740,26 @@ class GameSetting {
             outer.hide();
             outer.root.$menu.show();
         });
-        // this.$choose_hero.click(function() {
-        //     outer.hide();
-        //     outer.root.select_hero.show();
-        // });
+        this.$img_1.click(function(){
+            alert("已选择：hero1");
+            outer.hero="../../static/image/setting/1.jpg"
+        });
+        this.$img_2.click(function(){
+            alert("已选择：hero2");
+            outer.hero="../../static/image/setting/2.jpg"
+        });
+        this.$img_3.click(function(){
+            alert("已选择：hero3");
+            outer.hero="../../static/image/setting/3.jpg"
+        });
+        this.$img_4.click(function(){
+            alert("已选择：hero4");
+            outer.hero="../../static/image/setting/4.jpg"
+        });
+        this.$img_5.click(function(){
+            alert("已选择：hero5");
+            outer.hero="../../static/image/setting/5.jpg"
+        });
     }
 
     show() {

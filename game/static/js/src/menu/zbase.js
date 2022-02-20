@@ -32,6 +32,7 @@ class GameMenu {
         this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
+        this.bgSound2 = document.getElementById("reward-bgm");
 
         this.start();
     }
@@ -43,7 +44,6 @@ class GameMenu {
     {
         let outer=this;
         this.$startgame.click(function(){
-
             outer.bgSound1.play();
 
             outer.hide();
@@ -54,9 +54,7 @@ class GameMenu {
             outer.root.$reward.show();
 
             outer.bgSound1.pause();
-            
-            var bgSound = document.getElementById("reward-bgm");
-            bgSound.play();
+            outer.bgSound2.play();
         });
 
         this.$setting.click(function(){
