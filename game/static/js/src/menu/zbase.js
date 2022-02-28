@@ -44,7 +44,7 @@ class GameMenu {
     {
         let outer=this;
         this.$startgame.click(function(){
-            outer.bgSound1.play();
+           outer.bgSound1.play();
 
             outer.hide();
             outer.root.playground.show();
@@ -54,7 +54,7 @@ class GameMenu {
             outer.root.$reward.show();
 
             outer.bgSound1.pause();
-            outer.bgSound2.play();
+           outer.bgSound2.play();
         });
 
         this.$setting.click(function(){

@@ -2,7 +2,6 @@ class GamePlayground {
     constructor(root) {
         this.root = root;
         this.$playground = $(`<div class="game-playground"></div>`);
-
         this.start();
     }
 
@@ -30,6 +29,7 @@ class GamePlayground {
         for(let i=0;i<8;i++)
             this.players.push(new Player(this,this.width/2,this.height/2,this.height*0.05,this.get_random_color(),this.height*0.15,false));
         this.score_board=new ScoreBoard(this);
+        this.notice_board=new NoticeBoard(this);
     }
     hide()
     {

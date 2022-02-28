@@ -1,4 +1,4 @@
-class FireBall extends GameObject {
+class IceBall extends GameObject {
     constructor(playground, player, x, y, radius, vx, vy, color, speed, move_length, damage) {
         super();
         this.playground = playground;
@@ -69,7 +69,7 @@ class FireBall extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("fireball",angle, this.damage);
+        player.is_attacked("iceball",angle, this.damage);
         this.destroy();
     }
 
