@@ -1,3 +1,228 @@
+class GameLogin {
+    constructor(root) {
+        this.root = root;
+        this.username = "";
+        this.$login = $(`
+<div class="game-login">
+    <div class="game-login-login">
+        <div class="game-login-title">
+            登录
+        </div>
+        <div class="game-login-username">
+            <div class="game-login-item">
+                <input type="text" placeholder="用户名">
+            </div>
+        </div>
+        <div class="game-login-password">
+            <div class="game-login-item">
+                <input type="password" placeholder="密码">
+            </div>
+        </div>
+        <div class="game-login-submit">
+            <div class="game-login-item">
+                <button>登录</button>
+            </div>
+        </div>
+        <div class="game-login-error-message">
+        </div>
+        <div class="game-login-option">
+            注册
+        </div>
+        <br>
+    </div>
+
+
+    <div class="game-login-register">
+        <div class="game-login-title">
+            注册
+        </div>
+        <div class="game-login-username">
+            <div class="game-login-item">
+                <input type="text" placeholder="用户名">
+            </div>
+        </div>
+        <div class="game-login-password game-login-password-first">
+            <div class="game-login-item">
+                <input type="password" placeholder="密码">
+            </div>
+        </div>
+        <div class="game-login-password game-login-password-second">
+            <div class="game-login-item">
+                <input type="password" placeholder="确认密码">
+            </div>
+        </div>
+        <div class="game-login-submit">
+            <div class="game-login-item">
+                <button>注册</button>
+            </div>
+        </div>
+        <div class="game-login-error-message">
+        </div>
+        <div class="game-login-option">
+            登录
+        </div>
+        <br>
+    </div>
+</div>
+`);
+        this.$login_login = this.$login.find(".game-login-login");
+        this.$login_username = this.$login.find(".game-login-username input");
+        this.$login_password = this.$login.find(".game-login-password input");
+        this.$login_submit = this.$login_login.find(".game-login-submit button");
+        this.$login_error_message = this.$login.find(".game-login-error-message");
+        this.$login_register = this.$login.find(".game-login-option");
+
+        this.$login_login.show();
+
+        this.$register = this.$login.find(".game-login-register");
+        this.$register_username = this.$register.find(".game-login-username input");
+        this.$register_password = this.$register.find(".game-login-password-first input");
+        this.$register_password_confirm = this.$register.find(".game-login-password-second input");
+        this.$register_submit = this.$register.find(".game-login-submit button");
+        this.$register_error_message = this.$register.find(".game-login-error-message");
+        this.$register_login = this.$register.find(".game-login-option");
+
+        this.$register.hide();
+
+        this.root.$game.append(this.$login);
+
+        this.start();
+    }
+
+    start() {
+            this.getinfo();
+            this.add_listening_events();
+    }
+
+    getinfo()
+    {
+        let outer = this;
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/getinfo/",
+            type: "GET",
+            success: function(resp) {
+                console.log(resp);
+                if (resp.result === "success") {
+                    outer.username = resp.username;
+                    outer.hide();
+                    outer.root.$menu.show();
+                } else {
+                    outer.login();
+                }
+            }
+        });
+    }
+
+    add_listening_events() {
+        let outer = this;
+        this.add_listening_events_login();
+        this.add_listening_events_register();
+    }
+
+    add_listening_events_login() {
+        let outer = this;
+        this.$login_register.click(function() {
+            outer.register();
+        });
+        this.$login_submit.click(function() {
+            outer.login_on_remote();
+        });
+    }
+
+    login_on_remote() {  // 在远程服务器上登录
+        let outer = this;
+        let username = this.$login_username.val();
+        let password = this.$login_password.val();
+        console.log(password);
+        this.$login_error_message.empty();
+
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/login/",
+            type: "GET",
+            data: {
+                username: username,
+                password: password,
+            },
+            success: function(resp) {
+                if (resp.result === "success") {
+                    location.reload();
+                } else {
+                    outer.$login_error_message.html(resp.result);
+                }
+            }
+        });
+    }
+
+    logout_on_remote() {  // 在远程服务器上登出
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/logout/",
+            type: "GET",
+            success: function(resp) {
+                if (resp.result === "success") {
+                    location.reload();
+                }
+            }
+        });
+    }
+
+
+    add_listening_events_register() {
+        console.log("qqqqqq");
+        let outer = this;
+        this.$register_login.click(function() {
+            outer.login();
+        });
+        this.$register_submit.click(function() {
+            outer.register_on_remote();
+        });
+    }
+
+    register_on_remote() {  // 在远程服务器上注册
+        let outer = this;
+        let username = this.$register_username.val();
+        let password = this.$register_password.val();
+        let password_confirm = this.$register_password_confirm.val();
+        this.$register_error_message.empty();
+
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/register/",
+            type: "GET",
+            data: {
+                username: username,
+                password: password,
+                password_confirm: password_confirm,
+            },
+            success: function(resp) {
+                if (resp.result === "success") {
+                    console.log("qweqwe");
+                    location.reload();  // 刷新页面
+                } else {
+                    console.log("false");
+                    outer.$register_error_message.html(resp.result);
+                }
+            }
+        });
+    }
+
+
+    register() {  // 打开注册界面
+        this.$login_login.hide();
+        this.$register.show();
+    }
+
+    login() {  // 打开登录界面
+        this.$register.hide();
+        this.$login_login.show();
+    }
+
+    hide() {
+        this.$login.hide();
+    }
+
+    show() {
+        this.$login.show();
+    }
+}
 class GameMenu {
     constructor(root) {
         this.root = root;
@@ -26,6 +251,7 @@ class GameMenu {
     </div>
 </div>
 `);
+        this.$menu.hide();
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
@@ -325,6 +551,13 @@ class Player extends GameObject {
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "http://39.106.22.254:8000/static/image/setting/hero.jpg";
             }
+            //英雄5
+            if(this.img.src==="http://39.106.22.254:8000/static/image/setting/5.jpg")
+            {
+                this.hero=5;
+                this.skill_2_img = new Image();
+                this.skill_2_img.src = "https://git.acwing.com/TomG/resources/-/raw/master/images/Powershot_icon.png";
+            }
         }
     }
 
@@ -374,7 +607,7 @@ class Player extends GameObject {
                 }
             }
 
-            else if (e.which === 68) {
+            else if (e.which === 70) {
                 if(outer.skill_2_codetime<=outer.eps)
                 {
                     if(outer.hero===0)
@@ -387,6 +620,8 @@ class Player extends GameObject {
                         outer.cur_skill="iceball";
                     else if (outer.hero===4)
                         outer.cur_skill="manyfire";
+                    else if(outer.hero===5)
+                        outer.cur_skill="powershot";
                     outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
                 }
             }
@@ -458,12 +693,23 @@ class Player extends GameObject {
             let color = "red";
             let speed = this.playground.height*0.5;
             let move_length = 600;
-            for(let i=0;i<10;i++)
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            for(let i=0;i<3;i++)
             {
-                let angle = Math.PI*i/5;
-                let vx = Math.cos(angle), vy = Math.sin(angle);
+                let angle2=(angle+(i-1)*Math.PI/10);
+                let vx = Math.cos(angle2), vy = Math.sin(angle2);
                 new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
             }
+            this.skill_2_codetime=3;
+        }
+
+        else if(skill==="powershot")
+        {
+            let x = this.x, y = this.y;
+            let angle = Math.atan2(ty - y, tx - x);
+            let vy = Math.sin(angle);
+            let vx = Math.cos(angle);
+            new PowerShot(this.playground, this, x, y, vx, vy, 20);
             this.skill_2_codetime=3;
         }
     }
@@ -643,7 +889,7 @@ class Player extends GameObject {
             }
     
             this.radius-=damage;
-            this.speed*=2;
+            this.speed*=1.7;
     
     
             if(this.radius<10)
@@ -782,6 +1028,7 @@ class FireBall extends GameObject {
                 this.attack(player);
             }
         }
+        
         this.render();
     }
 
@@ -910,6 +1157,146 @@ class IceBall extends GameObject {
         this.ctx.fill();
     }
 }
+class PowerShot extends GameObject {
+    constructor(playground, player, x, y, vx, vy, damage) {
+        super();
+        this.playground = playground;
+        this.player = player;
+        this.ctx = this.playground.game_map.ctx;
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.radius = 5;
+        this.arrow_length = 30;
+        this.speed = 300;
+        this.move_length = 1500;
+        this.total_move_length = 2; // 总移动距离：2
+        this.remain_time = this.total_move_length / this.speed * 0.7; // 用来计算箭矢尾迹长度
+        this.total_remain_time = this.total_move_length / this.speed * 0.7; // 用来计算箭矢尾迹长度
+        this.eps = 0.01;
+        this.st = [];
+        this.grd_colors = ["rgb(218, 255, 103)", "rgb(193, 245, 94)", "rgb(163, 216, 93)", "rgb(124, 174, 80)"];
+
+    }
+
+    start() {
+        for (let i = 0; i < this.playground.players.length; i ++ ) 
+           this.st.push(0);
+    }
+
+    update() {
+        if (this.move_length < this.eps) {
+            console.log("destroy");
+            this.destroy();
+            return false;
+        }
+        this.update_move();
+
+        this.update_attack();
+        
+        this.render();
+    }
+
+    update_move() {
+        let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
+        this.x += this.vx * moved;
+        this.y += this.vy * moved;
+        this.move_length -= moved;
+    }
+
+    update_attack() {
+        for (let i = 0; i < this.playground.players.length; i ++ ) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)&&this.st[i]===0) {
+                console.log("attacked");
+                this.st[i]=1;
+                this.attack(player);
+            }
+        }
+    }
+
+    get_dist(x1, y1, x2, y2) {
+        let dx = x1 - x2;
+        let dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    is_collision(player) {
+        let distance = this.get_dist(this.x, this.y, player.x, player.y);
+        if (distance < this.radius + player.radius)
+            return true;
+        return false;
+    }
+
+    attack(player) {
+        let angle = Math.atan2(player.y - this.y, player.x - this.x);
+        player.is_attacked("powershot",angle, this.damage);
+    }
+
+    render() {
+        let ctx_x = this.x;
+        let ctx_y = this.y;
+        //console.log(ctx_x,ctx_y);
+        if (this.move_length > this.eps) 
+            this.render_arrow(ctx_x, ctx_y);
+        //this.render_effect(ctx_x, ctx_y);
+    }
+
+    render_arrow(ctx_x, ctx_y)
+    {
+        this.ctx.save();
+
+        this.ctx.translate(ctx_x, ctx_y);
+        this.ctx.rotate(this.angle);
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 0);
+        this.ctx.lineTo(this.arrow_length * 0.5, 0);
+        this.ctx.lineTo(this.arrow_length * 0.4, -this.arrow_length * 0.1);
+        this.ctx.moveTo(this.arrow_length * 0.5, 0);
+        this.ctx.lineTo(this.arrow_length * 0.4, this.arrow_length * 0.1);
+
+        this.ctx.moveTo(0, 0);
+        this.ctx.lineTo(-this.arrow_length * 0.5, 0);
+        this.ctx.lineTo(-this.arrow_length * 0.55, -this.arrow_length * 0.05);
+        this.ctx.lineTo(-this.arrow_length * 0.55, this.arrow_length * 0.05);
+        this.ctx.lineTo(-this.arrow_length * 0.5, 0);
+        this.ctx.strokeStyle = "white";
+        this.ctx.lineWidth = this.arrow_length * 0.2;
+        this.ctx.stroke();
+
+        this.ctx.restore();
+    }
+
+    render_effect(ctx_x, ctx_y) {
+        this.ctx.save();
+
+        this.ctx.translate(ctx_x, ctx_y);
+        this.ctx.rotate(this.angle);
+
+        this.ctx.shadowColor = "rgb(175, 210, 151)";
+        this.ctx.shadowBlur = 10;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 0);
+        this.ctx.lineTo(-Math.min(this.total_move_length - this.move_length, this.speed * this.remain_time), 0);
+
+        let x = (this.total_remain_time - this.remain_time) * this.speed;
+        let grd = this.ctx.createLinearGradient(x, 0, -this.speed * this.remain_time, 0);
+        grd.addColorStop(0, "rgba(245, 255, 224, 0.9)");
+        grd.addColorStop(0.25, "rgba(215, 255, 127, 0.6)");
+        grd.addColorStop(0.75, "rgba(215, 255, 127, 0.4)");
+        grd.addColorStop(0.95, "rgba(136, 188, 194, 0.1)");
+        grd.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        this.ctx.strokeStyle = grd;
+        this.ctx.lineWidth = this.arrow_length * 0.15;
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+}
 class GamePlayground {
     constructor(root) {
         this.root = root;
@@ -1020,6 +1407,7 @@ class GameReward {
 class GameSetting {
     constructor(root) {
         this.root = root;
+        this.username="";
         this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500"
         this.$setting = $(`
 <div class="game-setting">
@@ -1043,6 +1431,9 @@ class GameSetting {
             <img class ="img-5" src="../../static/image/setting/5.jpg" />
         </div>
     </div>
+    <div class='game-setting-logout'>
+        退出登录
+    </div>
     <div class='game-turn-back'>
         返回
     </div>
@@ -1050,6 +1441,7 @@ class GameSetting {
 `);
         this.hide();
         this.root.$game.append(this.$setting);
+        this.$game_logout = this.$setting.find('.game-setting-logout');
         this.$turn_back = this.$setting.find('.game-turn-back');
         this.$img_1 =  this.$setting.find('.img-1');
         this.$img_2 =  this.$setting.find('.img-2');
@@ -1066,6 +1458,10 @@ class GameSetting {
 
     add_listening_events() {
         let outer = this;
+        this.$game_logout.click(function() {
+            outer.hide();
+            outer.root.$login.logout_on_remote();
+        });
         this.$turn_back.click(function() {
             outer.hide();
             outer.root.$menu.show();
@@ -1104,9 +1500,10 @@ export class Game{
     constructor(id) {
         this.id = id;
         this.$game = $('#' + id);
-        this.$menu = new GameMenu(this);
         this.$reward=new GameReward(this);
         this.playground = new GamePlayground(this);
+        this.$menu = new GameMenu(this);
+        this.$login = new GameLogin(this);
         this.$setting = new GameSetting(this);
         this.start();
     }

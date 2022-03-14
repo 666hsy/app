@@ -1,6 +1,7 @@
 class GameSetting {
     constructor(root) {
         this.root = root;
+        this.username="";
         this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500"
         this.$setting = $(`
 <div class="game-setting">
@@ -24,6 +25,9 @@ class GameSetting {
             <img class ="img-5" src="../../static/image/setting/5.jpg" />
         </div>
     </div>
+    <div class='game-setting-logout'>
+        退出登录
+    </div>
     <div class='game-turn-back'>
         返回
     </div>
@@ -31,6 +35,7 @@ class GameSetting {
 `);
         this.hide();
         this.root.$game.append(this.$setting);
+        this.$game_logout = this.$setting.find('.game-setting-logout');
         this.$turn_back = this.$setting.find('.game-turn-back');
         this.$img_1 =  this.$setting.find('.img-1');
         this.$img_2 =  this.$setting.find('.img-2');
@@ -47,6 +52,10 @@ class GameSetting {
 
     add_listening_events() {
         let outer = this;
+        this.$game_logout.click(function() {
+            outer.hide();
+            outer.root.$login.logout_on_remote();
+        });
         this.$turn_back.click(function() {
             outer.hide();
             outer.root.$menu.show();

@@ -26,6 +26,7 @@ class GameMenu {
     </div>
 </div>
 `);
+        this.$menu.hide();
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');

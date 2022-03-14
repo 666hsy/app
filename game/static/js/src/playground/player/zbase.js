@@ -72,6 +72,13 @@ class Player extends GameObject {
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "http://39.106.22.254:8000/static/image/setting/hero.jpg";
             }
+            //英雄5
+            if(this.img.src==="http://39.106.22.254:8000/static/image/setting/5.jpg")
+            {
+                this.hero=5;
+                this.skill_2_img = new Image();
+                this.skill_2_img.src = "https://git.acwing.com/TomG/resources/-/raw/master/images/Powershot_icon.png";
+            }
         }
     }
 
@@ -121,7 +128,7 @@ class Player extends GameObject {
                 }
             }
 
-            else if (e.which === 68) {
+            else if (e.which === 70) {
                 if(outer.skill_2_codetime<=outer.eps)
                 {
                     if(outer.hero===0)
@@ -134,6 +141,8 @@ class Player extends GameObject {
                         outer.cur_skill="iceball";
                     else if (outer.hero===4)
                         outer.cur_skill="manyfire";
+                    else if(outer.hero===5)
+                        outer.cur_skill="powershot";
                     outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
                 }
             }
@@ -205,12 +214,23 @@ class Player extends GameObject {
             let color = "red";
             let speed = this.playground.height*0.5;
             let move_length = 600;
-            for(let i=0;i<10;i++)
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            for(let i=0;i<3;i++)
             {
-                let angle = Math.PI*i/5;
-                let vx = Math.cos(angle), vy = Math.sin(angle);
+                let angle2=(angle+(i-1)*Math.PI/10);
+                let vx = Math.cos(angle2), vy = Math.sin(angle2);
                 new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
             }
+            this.skill_2_codetime=3;
+        }
+
+        else if(skill==="powershot")
+        {
+            let x = this.x, y = this.y;
+            let angle = Math.atan2(ty - y, tx - x);
+            let vy = Math.sin(angle);
+            let vx = Math.cos(angle);
+            new PowerShot(this.playground, this, x, y, vx, vy, 20);
             this.skill_2_codetime=3;
         }
     }
@@ -390,7 +410,7 @@ class Player extends GameObject {
             }
     
             this.radius-=damage;
-            this.speed*=2;
+            this.speed*=1.7;
     
     
             if(this.radius<10)

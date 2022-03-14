@@ -34,6 +34,7 @@ class FireBall extends GameObject {
                 this.attack(player);
             }
         }
+        
         this.render();
     }
 
