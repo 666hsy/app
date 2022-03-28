@@ -162,7 +162,7 @@ class Player extends GameObject {
                 color="red";
             let speed = this.playground.height*0.5;
             let move_length = 600;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 7);
         }
 
         else if(skill === "blink")
@@ -180,7 +180,6 @@ class Player extends GameObject {
         {
             if(this.radius<this.playground.height*0.05&&this.is_me)
             {   
-                console.log(this.radius,this.playground.height*0.05);
                 this.speed/=1.5;
                 this.radius+=10;
                 this.skill_2_codetime = 3;
@@ -227,10 +226,13 @@ class Player extends GameObject {
         else if(skill==="powershot")
         {
             let x = this.x, y = this.y;
-            let angle = Math.atan2(ty - y, tx - x);
-            let vy = Math.sin(angle);
-            let vx = Math.cos(angle);
-            new PowerShot(this.playground, this, x, y, vx, vy, 20);
+            let radius = 7;
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let color = "SpringGreen";
+            let speed = this.playground.height;
+            let move_length = 1200;
+            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
             this.skill_2_codetime=3;
         }
     }
@@ -250,7 +252,6 @@ class Player extends GameObject {
 
     update() {
 
-        this.update_win();
         this.spent_time += this.timedelta / 1000;
         if(this.is_me)
             this.update_coldtime();
@@ -299,12 +300,6 @@ class Player extends GameObject {
 
         this.skill_2_codetime -= this.timedelta / 1000;
         this.skill_2_codetime = Math.max(this.skill_2_codetime, 0);
-    }
-
-    update_win() {
-        if (this.is_me === true && this.playground.players.length === 1) {
-            this.playground.score_board.win();
-        }
     }
 
 
@@ -415,6 +410,18 @@ class Player extends GameObject {
     
             if(this.radius<10)
             {
+                if(this.is_me===true)
+                {
+                    this.playground.score_board.lose();
+                    this.playground.live_count=8;
+                }
+                else
+                    this.playground.live_count--;
+                if(this.playground.live_count === 0)
+                {
+                    this.playground.score_board.win();
+                    this.playground.live_count=8;
+                }
                 this.destroy();
                 return false;
             }
@@ -429,6 +436,13 @@ class Player extends GameObject {
     
             if(this.radius<10)
             {
+                if(!this.is_me)
+                    this.playground.live_count--;
+                if(this.playground.live_count === 0)
+                {
+                    this.playground.score_board.win();
+                    this.playground.live_count=8;
+                }
                 this.destroy();
                 return false;
             }
@@ -439,9 +453,7 @@ class Player extends GameObject {
     }
 
     on_destroy()
-    {
-        if(this.is_me===true)
-            this.playground.score_board.lose();
+    {   
         for(let i=0;i<this.playground.players.length;i++){
             if(this.playground.players[i]===this)
             {

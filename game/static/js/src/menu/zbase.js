@@ -11,6 +11,13 @@ class GameMenu {
         <source src="./../static/audio/background2.mp3" type="audio/mpeg">
     </audio>
 
+    <div class="game-rule">
+        鼠标右键移动<br>
+        Q：1技能<br>
+        F：2技能<br>
+        按F11启用全屏
+    </div>
+
     <div class="game-menu-field">
         <div class="game-menu-field-item game-menu-field-item-startgame">
             开始游戏
@@ -27,6 +34,14 @@ class GameMenu {
 </div>
 `);
         this.$menu.hide();
+
+        this.chat_field=new ChatField(this);
+        this.gcs = new ChatSocket(this);
+        let outer = this;
+        this.gcs.ws.onopen = function () {
+            outer.gcs.send_init(outer.root.$login.username);
+        }
+        
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
@@ -34,7 +49,7 @@ class GameMenu {
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
-
+        
         this.start();
     }
     start()
@@ -46,7 +61,6 @@ class GameMenu {
         let outer=this;
         this.$startgame.click(function(){
            outer.bgSound1.play();
-
             outer.hide();
             outer.root.playground.show();
         });

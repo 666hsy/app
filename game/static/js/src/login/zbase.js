@@ -2,6 +2,7 @@ class GameLogin {
     constructor(root) {
         this.root = root;
         this.username = "";
+        this.score = 0;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -30,7 +31,6 @@ class GameLogin {
         </div>
         <br>
     </div>
-
 
     <div class="game-login-register">
         <div class="game-login-title">
@@ -72,7 +72,7 @@ class GameLogin {
         this.$login_error_message = this.$login.find(".game-login-error-message");
         this.$login_register = this.$login.find(".game-login-option");
 
-        this.$login_login.show();
+        this.$login_login.hide();
 
         this.$register = this.$login.find(".game-login-register");
         this.$register_username = this.$register.find(".game-login-username input");
@@ -82,11 +82,9 @@ class GameLogin {
         this.$register_error_message = this.$register.find(".game-login-error-message");
         this.$register_login = this.$register.find(".game-login-option");
 
-        this.$register.hide();
-
-        this.root.$game.append(this.$login);
-
         this.start();
+        this.root.$game.append(this.$login);
+        this.$register.hide();
     }
 
     start() {
@@ -100,10 +98,11 @@ class GameLogin {
         $.ajax({
             url: "http://39.106.22.254:8000/setting/getinfo/",
             type: "GET",
+            async:false,
             success: function(resp) {
-                console.log(resp);
                 if (resp.result === "success") {
                     outer.username = resp.username;
+                    outer.score=resp.score;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
@@ -133,7 +132,6 @@ class GameLogin {
         let outer = this;
         let username = this.$login_username.val();
         let password = this.$login_password.val();
-        console.log(password);
         this.$login_error_message.empty();
 
         $.ajax({
@@ -167,7 +165,6 @@ class GameLogin {
 
 
     add_listening_events_register() {
-        console.log("qqqqqq");
         let outer = this;
         this.$register_login.click(function() {
             outer.login();
@@ -194,10 +191,8 @@ class GameLogin {
             },
             success: function(resp) {
                 if (resp.result === "success") {
-                    console.log("qweqwe");
                     location.reload();  // 刷新页面
                 } else {
-                    console.log("false");
                     outer.$register_error_message.html(resp.result);
                 }
             }

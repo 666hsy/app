@@ -2,6 +2,7 @@ class GameLogin {
     constructor(root) {
         this.root = root;
         this.username = "";
+        this.score = 0;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -30,7 +31,6 @@ class GameLogin {
         </div>
         <br>
     </div>
-
 
     <div class="game-login-register">
         <div class="game-login-title">
@@ -72,7 +72,7 @@ class GameLogin {
         this.$login_error_message = this.$login.find(".game-login-error-message");
         this.$login_register = this.$login.find(".game-login-option");
 
-        this.$login_login.show();
+        this.$login_login.hide();
 
         this.$register = this.$login.find(".game-login-register");
         this.$register_username = this.$register.find(".game-login-username input");
@@ -82,11 +82,9 @@ class GameLogin {
         this.$register_error_message = this.$register.find(".game-login-error-message");
         this.$register_login = this.$register.find(".game-login-option");
 
-        this.$register.hide();
-
-        this.root.$game.append(this.$login);
-
         this.start();
+        this.root.$game.append(this.$login);
+        this.$register.hide();
     }
 
     start() {
@@ -100,10 +98,11 @@ class GameLogin {
         $.ajax({
             url: "http://39.106.22.254:8000/setting/getinfo/",
             type: "GET",
+            async:false,
             success: function(resp) {
-                console.log(resp);
                 if (resp.result === "success") {
                     outer.username = resp.username;
+                    outer.score=resp.score;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
@@ -133,7 +132,6 @@ class GameLogin {
         let outer = this;
         let username = this.$login_username.val();
         let password = this.$login_password.val();
-        console.log(password);
         this.$login_error_message.empty();
 
         $.ajax({
@@ -167,7 +165,6 @@ class GameLogin {
 
 
     add_listening_events_register() {
-        console.log("qqqqqq");
         let outer = this;
         this.$register_login.click(function() {
             outer.login();
@@ -194,10 +191,8 @@ class GameLogin {
             },
             success: function(resp) {
                 if (resp.result === "success") {
-                    console.log("qweqwe");
                     location.reload();  // 刷新页面
                 } else {
-                    console.log("false");
                     outer.$register_error_message.html(resp.result);
                 }
             }
@@ -223,7 +218,154 @@ class GameLogin {
         this.$login.show();
     }
 }
-class GameMenu {
+class ChatSocket {
+    constructor(menu) {
+        this.menu = menu;
+        this.ws = new WebSocket("ws://39.106.22.254:8000/ws/socket/");
+        this.start();
+    }
+    start() {
+        this.receive();
+    }
+    receive() {
+        let outer = this;
+        this.ws.onerror = function (e) {
+            outer.receive_message('Yeah', 'now', 'weksocket 未开启');
+        };
+
+        this.ws.onmessage = function (e) {  //收到来自服务器的消息
+            let data = JSON.parse(e.data);
+            console.log(data);
+            let event = data['event'];
+            if (event === 'message')
+                outer.receive_message(data['username'], data['time'], data['text']);
+        };
+
+    }
+    send_init(username) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'init',
+            'username': username,
+        }))
+    }
+
+    add_score(username) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'add',
+            'username': username,
+        }))
+    }
+
+    reduce_score(username) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'reduce',
+            'username': username,
+        }))
+    }
+
+    receive_init(details) {
+        for (let i = 0; i < details.length; i++) {
+            let detail = details[i];
+            let username = detail['username'];
+            let time = detail['time'];
+            let text = detail['message'];
+            this.menu.global_chat_field.add_message(username, time, text);
+        }
+    }
+    send_message(username, time, text) {
+        this.ws.send(JSON.stringify({
+            'event': 'message',
+            'username': username,
+            'time': time,
+            'message': text,
+        }))
+    }
+    receive_message(username, time, text) {
+        if(username!=this.menu.root.$login.username)
+            this.menu.chat_field.add_message(username, time, text);
+    }
+
+    receive_online(online_user) {
+        this.menu.global_chat_field.change_online_user(online_user);
+    }
+}class ChatField {
+    constructor(menu) {
+        this.menu = menu;
+        this.$title = $(`<div class="chat-field-title">世界之窗<i class="bi bi-person-fill"><span id="online_user"></span></i></div>`)
+        this.$history = $(`<div class="chat-field-history"></div>`);
+        this.$input = $(`<input type="text" class="chat-field-input">`);
+
+
+        this.func_id = null;
+        this.menu.$menu.append(this.$title);
+        this.menu.$menu.append(this.$history);
+        this.menu.$menu.append(this.$input);
+
+        this.start();
+    }
+
+    start() {
+        this.add_listening_events();
+    }
+
+
+    add_listening_events() {
+        let outer = this;
+
+        this.$input.keydown(function (e) {
+            if (e.which === 13) {  // ENTER
+                let username = outer.menu.root.$login.username;
+                let text = outer.$input.val();
+                if (text) {
+                    outer.$input.val("");
+                    Date.prototype.format = function (fmt) {
+                        var o = {
+                            "M+": this.getMonth() + 1,                 //月份 
+                            "d+": this.getDate(),                    //日 
+                            "h+": this.getHours(),                   //小时 
+                            "m+": this.getMinutes(),                 //分 
+                            "s+": this.getSeconds(),                 //秒 
+                            "q+": Math.floor((this.getMonth() + 3) / 3), //季度 
+                            "S": this.getMilliseconds()             //毫秒 
+                        };
+                        if (/(y+)/.test(fmt)) {
+                            fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+                        }
+                        for (var k in o) {
+                            if (new RegExp("(" + k + ")").test(fmt)) {
+                                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+                            }
+                        }
+                        return fmt;
+                    }
+                    let time = new Date().format("yyyy-MM-dd hh:mm:ss");
+                    outer.add_message(username, time, text);
+                    outer.menu.gcs.send_message(username, time, text);
+                }
+                return false;
+            }
+        });
+    }
+
+    render_message(message, color) {
+        return $(`<div style="color:${color}">${message}</div>`);
+    }
+
+    add_message(username, time, text) {
+        let message = `[${username}][${time}]<br>${text}`;
+        console.log(message);
+        let color = 'white';
+        if (username === this.menu.root.$login.username) {
+            color = 'AliceBlue';
+        }
+        this.$history.append(this.render_message(message, color));
+        this.$history.scrollTop(this.$history[0].scrollHeight);
+    }
+    change_online_user(online_user) {
+        $("#online_user").html(online_user);
+    }
+
+}class GameMenu {
     constructor(root) {
         this.root = root;
         this.$menu = $(`
@@ -235,6 +377,13 @@ class GameMenu {
     <audio id="reward-bgm" loop>
         <source src="./../static/audio/background2.mp3" type="audio/mpeg">
     </audio>
+
+    <div class="game-rule">
+        鼠标右键移动<br>
+        Q：1技能<br>
+        F：2技能<br>
+        按F11启用全屏
+    </div>
 
     <div class="game-menu-field">
         <div class="game-menu-field-item game-menu-field-item-startgame">
@@ -252,6 +401,14 @@ class GameMenu {
 </div>
 `);
         this.$menu.hide();
+
+        this.chat_field=new ChatField(this);
+        this.gcs = new ChatSocket(this);
+        let outer = this;
+        this.gcs.ws.onopen = function () {
+            outer.gcs.send_init(outer.root.$login.username);
+        }
+        
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
@@ -259,7 +416,7 @@ class GameMenu {
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
-
+        
         this.start();
     }
     start()
@@ -271,7 +428,6 @@ class GameMenu {
         let outer=this;
         this.$startgame.click(function(){
            outer.bgSound1.play();
-
             outer.hide();
             outer.root.playground.show();
         });
@@ -641,7 +797,7 @@ class Player extends GameObject {
                 color="red";
             let speed = this.playground.height*0.5;
             let move_length = 600;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 7);
         }
 
         else if(skill === "blink")
@@ -659,7 +815,6 @@ class Player extends GameObject {
         {
             if(this.radius<this.playground.height*0.05&&this.is_me)
             {   
-                console.log(this.radius,this.playground.height*0.05);
                 this.speed/=1.5;
                 this.radius+=10;
                 this.skill_2_codetime = 3;
@@ -706,10 +861,13 @@ class Player extends GameObject {
         else if(skill==="powershot")
         {
             let x = this.x, y = this.y;
-            let angle = Math.atan2(ty - y, tx - x);
-            let vy = Math.sin(angle);
-            let vx = Math.cos(angle);
-            new PowerShot(this.playground, this, x, y, vx, vy, 20);
+            let radius = 7;
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let color = "SpringGreen";
+            let speed = this.playground.height;
+            let move_length = 1200;
+            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
             this.skill_2_codetime=3;
         }
     }
@@ -729,7 +887,6 @@ class Player extends GameObject {
 
     update() {
 
-        this.update_win();
         this.spent_time += this.timedelta / 1000;
         if(this.is_me)
             this.update_coldtime();
@@ -778,12 +935,6 @@ class Player extends GameObject {
 
         this.skill_2_codetime -= this.timedelta / 1000;
         this.skill_2_codetime = Math.max(this.skill_2_codetime, 0);
-    }
-
-    update_win() {
-        if (this.is_me === true && this.playground.players.length === 1) {
-            this.playground.score_board.win();
-        }
     }
 
 
@@ -894,6 +1045,18 @@ class Player extends GameObject {
     
             if(this.radius<10)
             {
+                if(this.is_me===true)
+                {
+                    this.playground.score_board.lose();
+                    this.playground.live_count=8;
+                }
+                else
+                    this.playground.live_count--;
+                if(this.playground.live_count === 0)
+                {
+                    this.playground.score_board.win();
+                    this.playground.live_count=8;
+                }
                 this.destroy();
                 return false;
             }
@@ -908,6 +1071,13 @@ class Player extends GameObject {
     
             if(this.radius<10)
             {
+                if(!this.is_me)
+                    this.playground.live_count--;
+                if(this.playground.live_count === 0)
+                {
+                    this.playground.score_board.win();
+                    this.playground.live_count=8;
+                }
                 this.destroy();
                 return false;
             }
@@ -918,9 +1088,7 @@ class Player extends GameObject {
     }
 
     on_destroy()
-    {
-        if(this.is_me===true)
-            this.playground.score_board.lose();
+    {   
         for(let i=0;i<this.playground.players.length;i++){
             if(this.playground.players[i]===this)
             {
@@ -933,21 +1101,20 @@ class ScoreBoard extends GameObject {
     constructor(playground) {
         super();
         this.playground = playground;
+        this.flag=false;
         this.ctx = this.playground.game_map.ctx;
 
         this.state = null;  // win: 胜利，lose：失败
 
         this.win_img = new Image();
         this.win_img.src = "https://img0.baidu.com/it/u=4030779468,445934973&fm=253&fmt=auto&app=138&f=JPEG?w=567&h=334";
-        //this.win_img.src = "./../../../static/image/playground/win.gif";
 
         this.lose_img = new Image();
         this.lose_img.src = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwx3.sinaimg.cn%2Flarge%2F006cSBLKgy1fygwp6unafj304c04y0sr.jpg&refer=http%3A%2F%2Fwx3.sinaimg.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1647950615&t=8df7970c36727e59665ee57f2fa28a74";
-        //this.lose_img.src = "./../../..static/image/playground/lose.gif";
     }
 
     start() {
-        //this.win();
+
     }
 
     add_listening_events() {
@@ -965,6 +1132,9 @@ class ScoreBoard extends GameObject {
         this.state = "win";
 
         let outer = this;
+        outer.playground.root.$menu.gcs.add_score(outer.playground.root.$menu.root.$login.username);
+        console.log("win");
+
         setTimeout(function() {
             outer.add_listening_events();
         }, 1000);
@@ -973,7 +1143,9 @@ class ScoreBoard extends GameObject {
     lose() {
         this.state = "lose";
 
+        console.log("内输");
         let outer = this;
+        outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
         setTimeout(function() {
             outer.add_listening_events();
         }, 1000);
@@ -1158,7 +1330,7 @@ class IceBall extends GameObject {
     }
 }
 class PowerShot extends GameObject {
-    constructor(playground, player, x, y, vx, vy, damage) {
+    constructor(playground, player, x, y, radius, vx, vy, color, speed, move_length, damage) {
         super();
         this.playground = playground;
         this.player = player;
@@ -1167,33 +1339,33 @@ class PowerShot extends GameObject {
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.radius = 5;
-        this.arrow_length = 30;
-        this.speed = 300;
-        this.move_length = 1500;
-        this.total_move_length = 2; // 总移动距离：2
-        this.remain_time = this.total_move_length / this.speed * 0.7; // 用来计算箭矢尾迹长度
-        this.total_remain_time = this.total_move_length / this.speed * 0.7; // 用来计算箭矢尾迹长度
+        this.radius = radius;
+        this.color = color;
+        this.speed = speed;
+        this.move_length = move_length;
+        this.damage = damage;
+        this.arrow_length = 20;
         this.eps = 0.01;
-        this.st = [];
-        this.grd_colors = ["rgb(218, 255, 103)", "rgb(193, 245, 94)", "rgb(163, 216, 93)", "rgb(124, 174, 80)"];
-
     }
 
     start() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) 
-           this.st.push(0);
     }
 
     update() {
         if (this.move_length < this.eps) {
-            console.log("destroy");
             this.destroy();
             return false;
         }
         this.update_move();
 
-        this.update_attack();
+        for(let i=0;i<this.playground.players.length;i++)
+        {
+            let player=this.playground.players[i];
+            if(this.player!==player&&this.is_collision(player))
+            {
+                this.attack(player);
+            }
+        }
         
         this.render();
     }
@@ -1208,10 +1380,9 @@ class PowerShot extends GameObject {
     update_attack() {
         for (let i = 0; i < this.playground.players.length; i ++ ) {
             let player = this.playground.players[i];
-            if (this.player !== player && this.is_collision(player)&&this.st[i]===0) {
-                console.log("attacked");
-                this.st[i]=1;
+            if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
+                break;
             }
         }
     }
@@ -1231,75 +1402,20 @@ class PowerShot extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("powershot",angle, this.damage);
+        player.is_attacked("fireball",angle, this.damage);
     }
 
     render() {
-        let ctx_x = this.x;
-        let ctx_y = this.y;
-        //console.log(ctx_x,ctx_y);
-        if (this.move_length > this.eps) 
-            this.render_arrow(ctx_x, ctx_y);
-        //this.render_effect(ctx_x, ctx_y);
-    }
-
-    render_arrow(ctx_x, ctx_y)
-    {
-        this.ctx.save();
-
-        this.ctx.translate(ctx_x, ctx_y);
-        this.ctx.rotate(this.angle);
-
         this.ctx.beginPath();
-        this.ctx.moveTo(0, 0);
-        this.ctx.lineTo(this.arrow_length * 0.5, 0);
-        this.ctx.lineTo(this.arrow_length * 0.4, -this.arrow_length * 0.1);
-        this.ctx.moveTo(this.arrow_length * 0.5, 0);
-        this.ctx.lineTo(this.arrow_length * 0.4, this.arrow_length * 0.1);
-
-        this.ctx.moveTo(0, 0);
-        this.ctx.lineTo(-this.arrow_length * 0.5, 0);
-        this.ctx.lineTo(-this.arrow_length * 0.55, -this.arrow_length * 0.05);
-        this.ctx.lineTo(-this.arrow_length * 0.55, this.arrow_length * 0.05);
-        this.ctx.lineTo(-this.arrow_length * 0.5, 0);
-        this.ctx.strokeStyle = "white";
-        this.ctx.lineWidth = this.arrow_length * 0.2;
-        this.ctx.stroke();
-
-        this.ctx.restore();
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
     }
-
-    render_effect(ctx_x, ctx_y) {
-        this.ctx.save();
-
-        this.ctx.translate(ctx_x, ctx_y);
-        this.ctx.rotate(this.angle);
-
-        this.ctx.shadowColor = "rgb(175, 210, 151)";
-        this.ctx.shadowBlur = 10;
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, 0);
-        this.ctx.lineTo(-Math.min(this.total_move_length - this.move_length, this.speed * this.remain_time), 0);
-
-        let x = (this.total_remain_time - this.remain_time) * this.speed;
-        let grd = this.ctx.createLinearGradient(x, 0, -this.speed * this.remain_time, 0);
-        grd.addColorStop(0, "rgba(245, 255, 224, 0.9)");
-        grd.addColorStop(0.25, "rgba(215, 255, 127, 0.6)");
-        grd.addColorStop(0.75, "rgba(215, 255, 127, 0.4)");
-        grd.addColorStop(0.95, "rgba(136, 188, 194, 0.1)");
-        grd.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-        this.ctx.strokeStyle = grd;
-        this.ctx.lineWidth = this.arrow_length * 0.15;
-        this.ctx.stroke();
-        this.ctx.restore();
-    }
-
 }
 class GamePlayground {
     constructor(root) {
         this.root = root;
+        this.live_count=8;
         this.$playground = $(`<div class="game-playground"></div>`);
         this.start();
     }
@@ -1407,8 +1523,8 @@ class GameReward {
 class GameSetting {
     constructor(root) {
         this.root = root;
-        this.username="";
-        this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500"
+        this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
+        this.score=this.root.$login.score;
         this.$setting = $(`
 <div class="game-setting">
     <div class="game-reward-title">
@@ -1430,6 +1546,15 @@ class GameSetting {
         <div class="game-setting-field-item">
             <img class ="img-5" src="../../static/image/setting/5.jpg" />
         </div>
+        <div class='game-setting-origin'>
+            恢复默认
+        </div>
+    </div>
+    <div class='game-setting-username'>
+        玩家:${this.root.$login.username}
+    </div>
+    <div class='game-setting-score'>
+        天梯分:${this.score}
     </div>
     <div class='game-setting-logout'>
         退出登录
@@ -1440,14 +1565,19 @@ class GameSetting {
 </div>
 `);
         this.hide();
+        
         this.root.$game.append(this.$setting);
+
         this.$game_logout = this.$setting.find('.game-setting-logout');
+        this.$game_origin = this.$setting.find('.game-setting-origin');
         this.$turn_back = this.$setting.find('.game-turn-back');
+        this.$score = this.$setting.find('.game-setting-score');
         this.$img_1 =  this.$setting.find('.img-1');
         this.$img_2 =  this.$setting.find('.img-2');
         this.$img_3 =  this.$setting.find('.img-3');
         this.$img_4 =  this.$setting.find('.img-4');
         this.$img_5 =  this.$setting.find('.img-5');
+
 
         this.start();
     }
@@ -1486,9 +1616,25 @@ class GameSetting {
             outer.hero="../../static/image/setting/5.jpg";
             alert("已选择：hero5");
         });
+        this.$game_origin.click(function(){
+            outer.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
+            alert("已选择：默认英雄");
+        });
     }
 
     show() {
+        let outer = this;
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/getinfo/",
+            type: "GET",
+            async:false,
+            success: function(resp) {
+                if (resp.result === "success") {
+                    outer.score=resp.score;
+                }
+            }
+        });
+        console.log(this.score);
         this.$setting.show();
     }
     hide() {

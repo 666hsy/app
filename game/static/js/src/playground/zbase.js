@@ -1,6 +1,7 @@
 class GamePlayground {
     constructor(root) {
         this.root = root;
+        this.live_count=8;
         this.$playground = $(`<div class="game-playground"></div>`);
         this.start();
     }
