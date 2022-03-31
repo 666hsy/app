@@ -85,15 +85,11 @@ class Player extends GameObject {
     start() {
         
         if (this.is_me)
-        {
-            console.log(this.img.src);
             this.add_listening_events();
-        }
-            
         else
         {
-            let tx=Math.random()*this.playground.width;
-            let ty=Math.random()*this.playground.height;
+            let tx=Math.random() * this.playground.virtual_map_width;
+            let ty=Math.random() * this.playground.virtual_map_height;
             this.move_to(tx,ty);
         }
     }
@@ -105,16 +101,23 @@ class Player extends GameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function(e) {
-            if (e.which === 3)
+
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
+            let ty = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
+
+            if (e.which === 3)  //鼠标右键
             {
-                new ClickParticle(outer.playground, e.clientX, e.clientY, "rgba(255,255,255,0.5)");
-                outer.move_to(e.clientX, e.clientY);
+                new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
+                outer.move_to(tx, ty);
             }
         });
 
         this.playground.game_map.$canvas.on("mousemove", function (e) {  //获取鼠标位置
-            outer.mouseX = e.clientX;
-            outer.mouseY = e.clientY;
+
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            outer.mouseX = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
+            outer.mouseY = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
         });
 
 
@@ -124,9 +127,17 @@ class Player extends GameObject {
                 {
                     outer.cur_skill="fireball";
                     outer.come_skill(outer.mouseX,outer.mouseY,"fireball");
-                    outer.skill_1_codetime=1;
+                    outer.playground.root.$menu.bgSound3.play();
+                    outer.skill_1_codetime=2;
                 }
             }
+
+            // if (e.which === 32 || e.which === 49) { // 按1键或空格聚焦玩家
+            //     outer.playground.focus_player = outer;
+            //     outer.playground.re_calculate_cx_cy(outer.x, outer.y);
+            //     return false;
+            // }
+
 
             else if (e.which === 70) {
                 if(outer.skill_2_codetime<=outer.eps)
@@ -154,21 +165,21 @@ class Player extends GameObject {
         if(skill==="fireball")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
             if(this.is_me)
                 color="red";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 7);
+            let speed = this.speed*3;
+            let move_length = 0.8;
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
         }
 
         else if(skill === "blink")
         {
             let d = this.get_dist(this.x, this.y, tx, ty);
-            d = Math.min(d, 120);
+            d = Math.min(d, 0.2);
             let angle = Math.atan2(ty - this.y, tx - this.x);
             this.x += d * Math.cos(angle);
             this.y += d * Math.sin(angle);
@@ -178,47 +189,45 @@ class Player extends GameObject {
 
         else if(skill==="cure")
         {
-            if(this.radius<this.playground.height*0.05&&this.is_me)
+            if(this.radius<0.05&&this.is_me)
             {   
-                this.speed/=1.5;
-                this.radius+=10;
+                this.speed/=1.2;
+                this.radius+=0.01;
                 this.skill_2_codetime = 3;
             }
         }
 
         else if(skill==="protect")
-        {
             this.shield=true;
-        }
         
         else if(skill==="iceball")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
             if(this.is_me)
                 color="MediumSlateBlue";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
-            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            let speed = this.speed*3;
+            let move_length = 0.8;
+            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime = 3;
         }
 
         else if(skill==="manyfire")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let color = "red";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
+            let speed = this.speed*3;
+            let move_length = 0.8;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             for(let i=0;i<3;i++)
             {
-                let angle2=(angle+(i-1)*Math.PI/10);
+                let angle2=(angle+(i-1)*Math.PI/7);
                 let vx = Math.cos(angle2), vy = Math.sin(angle2);
-                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             }
             this.skill_2_codetime=3;
         }
@@ -226,13 +235,13 @@ class Player extends GameObject {
         else if(skill==="powershot")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "SpringGreen";
-            let speed = this.playground.height;
-            let move_length = 1200;
-            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            let speed = this.speed*6;
+            let move_length = 1.6;
+            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime=3;
         }
     }
@@ -252,6 +261,11 @@ class Player extends GameObject {
 
     update() {
 
+        if (this.is_me && this.playground.focus_player === this) {
+            this.playground.re_calculate_cx_cy(this.x, this.y);
+        }
+
+
         this.spent_time += this.timedelta / 1000;
         if(this.is_me)
             this.update_coldtime();
@@ -264,7 +278,7 @@ class Player extends GameObject {
         }
 
 
-        if(this.damage_speed>10)
+        if(this.damage_speed > this.eps)
         {
             this.vx=this.vy=0;
             this.move_length=0;
@@ -272,6 +286,7 @@ class Player extends GameObject {
             this.y+=this.damage_y*this.damage_speed*this.timedelta/1000;
             this.damage_speed*=this.friction;
         }
+
         else
         {
             if (this.move_length < this.eps) {
@@ -279,8 +294,8 @@ class Player extends GameObject {
                 this.vx = this.vy = 0;
                 if(!this.is_me)
                 {
-                    let tx=Math.random()*this.playground.width;
-                    let ty=Math.random()*this.playground.height;
+                    let tx=Math.random() * this.playground.virtual_map_width;
+                    let ty=Math.random() * this.playground.virtual_map_height;
                     this.move_to(tx,ty);
                 }
             } else {
@@ -304,6 +319,8 @@ class Player extends GameObject {
 
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
 
         if(this.speed===0)
         {
@@ -316,9 +333,18 @@ class Player extends GameObject {
             if (this.shield && this.shield_pass_time <= 2) 
             {
                 this.shield_pass_time += this.timedelta / 1000;
+
+                let scale = this.playground.scale;
+                let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+                if (ctx_x < -0.1 * this.playground.width / scale ||
+                    ctx_x > 1.1 * this.playground.width / scale ||
+                    ctx_y < -0.1 * this.playground.height / scale ||
+                    ctx_y > 1.1 * this.playground.height / scale) {
+                    return;
+                }
                 this.ctx.beginPath();
-                this.ctx.arc(this.x, this.y, this.radius * 3.9, 0, Math.PI * 2);
-                this.ctx.arc(this.x, this.y, this.radius * 4.0, 0, Math.PI * 2, true);
+                this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale * 3.9, 0, Math.PI * 2);
+                this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale * 4.0, 0, Math.PI * 2, true);
                 this.ctx.fillStyle = 'silver';
                 this.ctx.fill();
             }
@@ -327,14 +353,13 @@ class Player extends GameObject {
             this.skill_2_codetime=3;
             this.shield_pass_time = 0;
         }
-
-
             this.ctx.save();
+            this.ctx.strokeStyle = this.color;
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+            this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
             this.render_skill_coldtime();
         }
@@ -342,45 +367,48 @@ class Player extends GameObject {
         else
         {
             this.ctx.beginPath();
-            this.ctx.arc(this.x , this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
-            this.ctx.fill();            
+            this.ctx.fill();
+        
         }
     }
 
     render_skill_coldtime() {
-        let x = this.playground.width-150, y = this.playground.height-50, r = this.playground.height*0.04;
+
+        let scale = this.playground.scale;
+        let x = this.playground.width/scale-0.2, y = 0.9, r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
+        this.ctx.arc(x* scale, y* scale, r* scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.fireball_img, (x - r), (y - r), r * 2, r * 2);
+        this.ctx.drawImage(this.fireball_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
         this.ctx.restore();
 
         if (this.skill_1_codetime > 0) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x, y);
-            this.ctx.arc(x, y, r, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime) - Math.PI / 2, true);
-            this.ctx.lineTo(x, y);
+            this.ctx.moveTo(x * scale, y* scale);
+            this.ctx.arc(x * scale, y* scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime/2) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
 
-        x = this.playground.width-70, y = this.playground.height-50, r = this.playground.height*0.04;
+        x = this.playground.width/scale-0.1, y = 0.9, r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.skill_2_img, (x - r), (y - r), r * 2, r * 2);
+        this.ctx.drawImage(this.skill_2_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
         this.ctx.restore();
 
         if (this.skill_2_codetime > 0) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x, y);
-            this.ctx.arc(x, y, r, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime/3) - Math.PI / 2, true);
-            this.ctx.lineTo(x, y);
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime/3) - Math.PI / 2, true);
+            this.ctx.lineTo(x* scale, y* scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
@@ -405,22 +433,34 @@ class Player extends GameObject {
             }
     
             this.radius-=damage;
-            this.speed*=1.7;
+            this.speed*=1.2;
     
     
-            if(this.radius<10)
+            if(this.radius<this.eps)
             {
                 if(this.is_me===true)
                 {
                     this.playground.score_board.lose();
-                    this.playground.live_count=8;
+                    this.playground.root.$menu.bgSound_lose.play();
+                    this.playground.live_count=10;
                 }
                 else
+                {
                     this.playground.live_count--;
+                    if(this.playground.live_count===4)
+                        this.playground.root.$menu.bgSound_unstop.play();
+                    if(this.playground.live_count===3)
+                        this.playground.root.$menu.bgSound_domainting.play();
+                    if(this.playground.live_count===2)
+                        this.playground.root.$menu.bgSound_godlike.play();
+                    if(this.playground.live_count===1)
+                        this.playground.root.$menu.bgSound_lendy.play();
+                }
                 if(this.playground.live_count === 0)
                 {
+                    this.playground.root.$menu.bgSound_win.play();
                     this.playground.score_board.win();
-                    this.playground.live_count=8;
+                    this.playground.live_count=10;
                 }
                 this.destroy();
                 return false;
@@ -428,13 +468,13 @@ class Player extends GameObject {
             this.damage_x=Math.cos(angle);
             this.damage_y=Math.sin(angle);
             this.damage_speed=damage*80;
-            this.speed*=0.8;
+            // this.speed*=0.8;
         }
         else if(skill==="iceball")
         {
             this.radius-=damage;
     
-            if(this.radius<10)
+            if(this.radius<this.eps)
             {
                 if(!this.is_me)
                     this.playground.live_count--;

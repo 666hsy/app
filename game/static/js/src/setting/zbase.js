@@ -72,6 +72,7 @@ class GameSetting {
         });
         this.$turn_back.click(function() {
             outer.hide();
+            outer.root.$menu.bgSound_hero.pause();
             outer.root.$menu.show();
         });
         this.$img_1.click(function(){
@@ -112,7 +113,6 @@ class GameSetting {
                 }
             }
         });
-        console.log(this.score);
         this.$setting.show();
     }
     hide() {

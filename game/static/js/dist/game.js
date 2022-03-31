@@ -370,12 +370,44 @@ class ChatSocket {
         this.root = root;
         this.$menu = $(`
 <div class="game-menu">
-    <audio id="bgMusic" loop>
-        <source src="./../static/audio/menu/background1.mp3" type="audio/mpeg">
+    <audio id="bgMusic">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201604/7170.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="unstop">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10598.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="legnerdy">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10597.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="godlike">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10596.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="domainting">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10595.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="win">
+        <source src="https://downsc.chinaz.net/files/download/sound1/201406/4507.mp3" type="audio/mpeg">
     </audio>
 
     <audio id="reward-bgm" loop>
         <source src="./../static/audio/background2.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="shoot_ball">
+        <source src="https://ppt-mp3cdn.hrxz.com/d/file/filemp3/hrxz.com-o20p0xghg2f48281.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="lose">
+        <source src="https://ppt-mp3cdn.hrxz.com/d/file/filemp3/hrxz.com-22hqfrdcolg22515.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="select-hero" loop>
+        <source src="https://downsc.chinaz.net/files/download/sound1/201406/4539.mp3" type="audio/mpeg">
     </audio>
 
     <div class="game-rule">
@@ -416,6 +448,15 @@ class ChatSocket {
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
+        this.bgSound3 = document.getElementById("shoot_ball");
+        this.bgSound_lose = document.getElementById("lose");
+        this.bgSound_hero = document.getElementById("select-hero");
+        this.bgSound_unstop = document.getElementById("unstop");
+        this.bgSound_lendy = document.getElementById("legnerdy");
+        this.bgSound_godlike = document.getElementById("godlike");
+        this.bgSound_domainting = document.getElementById("domainting");
+        this.bgSound_win = document.getElementById("win");
+        
         
         this.start();
     }
@@ -435,12 +476,13 @@ class ChatSocket {
             outer.hide();
             outer.root.$reward.show();
 
-            outer.bgSound1.pause();
+           outer.bgSound1.pause();
            outer.bgSound2.play();
         });
 
         this.$setting.click(function(){
             outer.hide();
+            outer.bgSound_hero.play();
             outer.root.$setting.show();
         });
     }
@@ -519,41 +561,182 @@ class ClickParticle extends GameObject {
         this.vx = Math.cos(this.angle);
         this.vy = Math.sin(this.angle);
 
-        this.radius = 10;
+        this.radius = 0.03;
     }
 
     start() {
     }
 
     update() {
-        if (this.radius > 25) {
+        if (this.radius > 0.05) {
             this.destroy();
             return false;
         }
-        this.radius *= 1.08;
+        this.radius *= 1.06;
         this.render();
     }
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.strokeStyle = this.color;
         this.ctx.stroke();
+    }
+}
+class Grid extends GameObject {
+    constructor(playground, ctx, i, j, l, stroke_color) {
+        super();
+        this.playground = playground;
+        this.ctx = ctx;
+        this.i = i;
+        this.j = j;
+        this.l = l;
+        this.x = this.i * this.l;
+        this.y = this.j * this.l;
+
+        this.stroke_color = stroke_color;
+        this.fill_color = "rgb(210, 222, 238)";
+
+    }
+
+    start() 
+    {
+
+    }
+
+    get_manhattan_dist(x1, y1, x2, y2) {
+        return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+    }
+
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
+        let cx = ctx_x + this.l * 0.5, cy = ctx_y + this.l * 0.5; // grid的中心坐标
+        // 处于屏幕范围外，则不渲染
+        if (cx * scale < -0.2 * this.playground.width ||
+            cx * scale > 1.2 * this.playground.width ||
+            cy * scale < -0.2 * this.playground.height ||
+            cy * scale > 1.2 * this.playground.height) {
+            return;
+        }
+
+        this.render_grid(ctx_x, ctx_y, scale);
+    }
+
+    render_grid(ctx_x, ctx_y, scale) {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.lineWidth = this.l * 0.01 * scale;
+        this.ctx.strokeStyle = this.stroke_color;
+        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale, this.l * scale);
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    on_destroy() {
+    }
+}
+class Wall extends GameObject {
+    constructor(ctx, x, y, l, img_url) {
+        super();
+        this.ctx = ctx;
+        this.x = x;
+        this.y = y;
+        this.l = l;
+        this.ax = this.x * this.l;
+        this.ay = this.y * this.l;
+        this.img = new Image();
+        this.img.src = img_url;
+    }
+
+    start() {
+        console.log(this.x,this.y);
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.lineWidth = this.l * 0.03;
+        this.ctx.strokeStyle = "rgba(0,0,0,0)";
+        this.ctx.rect(this.ax, this.ay, this.l, this.l);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.img, this.ax, this.ay, this.l, this.l);
+        this.ctx.restore();
     }
 }
 class GameMap extends GameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas tabindex=0></canvas>`); 
+        this.$canvas = $(`<canvas tabindex=0 class="game-playground-map"></canvas>`); 
         this.ctx = this.$canvas[0].getContext('2d');
         this.ctx.canvas.width = this.playground.width;
         this.ctx.canvas.height = this.playground.height;
         this.playground.$playground.append(this.$canvas);
+
+        let width = this.playground.virtual_map_width;
+        let height = this.playground.virtual_map_height;
+        this.l = height * 0.2;
+        this.nx = Math.ceil(width / this.l);
+        this.ny = Math.ceil(height / this.l);
+
+        this.start();
+
     }
     start() {
         this.$canvas.focus();
+        this.generate_grid();
+        // this.generate_wall();
     }
+
+    resize() {
+        this.ctx.canvas.width = this.playground.width;
+        this.ctx.canvas.height = this.playground.height;
+        this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
+    generate_wall() {
+        let wall_pic = "https://s3.bmp.ovh/imgs/2021/11/837412e46f4f61a6.jpg";
+        this.walls = [];
+        for (let i = 0; i < this.ny; i ++ ) {
+            for (let j = 0; j < this.nx; j ++ ) {
+                if (Math.random() < 20 / (this.nx * this.ny)) {
+                    this.walls.push(new Wall(this.ctx, j, i, this.l, wall_pic));
+                }
+            }
+        }
+    }
+
+
+    generate_grid() {
+        this.grids = [];
+        for (let i = 0; i < this.ny; i ++ ) {
+            for (let j = 0; j < this.nx; j ++ ) {
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, this.l, "DimGray"));
+            }
+        }
+    }
+
+
 
     update() {
         this.render();
@@ -563,6 +746,14 @@ class GameMap extends GameObject {
         this.ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
+
+    on_destroy() {
+        for (let i = 0; i < this.grids.length; i ++ ) {
+            this.grids[i].destroy();
+        }
+        this.grids = [];
+    }
+
 }
 class NoticeBoard extends GameObject {
     constructor(playground) {
@@ -607,7 +798,7 @@ class Particle extends GameObject
         this.color=color;
         this.speed=speed;
         this.friction=0.9;
-        this.eps=1;
+        this.eps=0.001;
     }
     start()
     {
@@ -621,15 +812,28 @@ class Particle extends GameObject
 		let moved=Math.min(this.move_length,this.speed*this.timedelta/1000);
         this.x+=this.vx*moved;
         this.y+=this.vy*moved;
+
+        
+
         this.speed*=this.friction;
 		this.move_length-=moved;
 		this.render();
 	}
 	render() {
-		this.ctx.beginPath();
-		this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-		this.ctx.fillStyle = this.color;
-		this.ctx.fill();
+		let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
+
+        if (ctx_x < -0.2 * this.playground.width / scale ||
+            ctx_x > 1.2 * this.playground.width / scale ||
+            ctx_y < -0.2 * this.playground.height / scale ||
+            ctx_y > 1.2 * this.playground.height / scale) {
+            return;
+        }
+        this.ctx.beginPath();
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+
 	}
 
 }
@@ -720,15 +924,11 @@ class Player extends GameObject {
     start() {
         
         if (this.is_me)
-        {
-            console.log(this.img.src);
             this.add_listening_events();
-        }
-            
         else
         {
-            let tx=Math.random()*this.playground.width;
-            let ty=Math.random()*this.playground.height;
+            let tx=Math.random() * this.playground.virtual_map_width;
+            let ty=Math.random() * this.playground.virtual_map_height;
             this.move_to(tx,ty);
         }
     }
@@ -740,16 +940,23 @@ class Player extends GameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function(e) {
-            if (e.which === 3)
+
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
+            let ty = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
+
+            if (e.which === 3)  //鼠标右键
             {
-                new ClickParticle(outer.playground, e.clientX, e.clientY, "rgba(255,255,255,0.5)");
-                outer.move_to(e.clientX, e.clientY);
+                new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
+                outer.move_to(tx, ty);
             }
         });
 
         this.playground.game_map.$canvas.on("mousemove", function (e) {  //获取鼠标位置
-            outer.mouseX = e.clientX;
-            outer.mouseY = e.clientY;
+
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            outer.mouseX = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
+            outer.mouseY = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
         });
 
 
@@ -759,9 +966,17 @@ class Player extends GameObject {
                 {
                     outer.cur_skill="fireball";
                     outer.come_skill(outer.mouseX,outer.mouseY,"fireball");
-                    outer.skill_1_codetime=1;
+                    outer.playground.root.$menu.bgSound3.play();
+                    outer.skill_1_codetime=2;
                 }
             }
+
+            // if (e.which === 32 || e.which === 49) { // 按1键或空格聚焦玩家
+            //     outer.playground.focus_player = outer;
+            //     outer.playground.re_calculate_cx_cy(outer.x, outer.y);
+            //     return false;
+            // }
+
 
             else if (e.which === 70) {
                 if(outer.skill_2_codetime<=outer.eps)
@@ -789,21 +1004,21 @@ class Player extends GameObject {
         if(skill==="fireball")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
             if(this.is_me)
                 color="red";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 7);
+            let speed = this.speed*3;
+            let move_length = 0.8;
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
         }
 
         else if(skill === "blink")
         {
             let d = this.get_dist(this.x, this.y, tx, ty);
-            d = Math.min(d, 120);
+            d = Math.min(d, 0.2);
             let angle = Math.atan2(ty - this.y, tx - this.x);
             this.x += d * Math.cos(angle);
             this.y += d * Math.sin(angle);
@@ -813,47 +1028,45 @@ class Player extends GameObject {
 
         else if(skill==="cure")
         {
-            if(this.radius<this.playground.height*0.05&&this.is_me)
+            if(this.radius<0.05&&this.is_me)
             {   
-                this.speed/=1.5;
-                this.radius+=10;
+                this.speed/=1.2;
+                this.radius+=0.01;
                 this.skill_2_codetime = 3;
             }
         }
 
         else if(skill==="protect")
-        {
             this.shield=true;
-        }
         
         else if(skill==="iceball")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
             if(this.is_me)
                 color="MediumSlateBlue";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
-            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            let speed = this.speed*3;
+            let move_length = 0.8;
+            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime = 3;
         }
 
         else if(skill==="manyfire")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let color = "red";
-            let speed = this.playground.height*0.5;
-            let move_length = 600;
+            let speed = this.speed*3;
+            let move_length = 0.8;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             for(let i=0;i<3;i++)
             {
-                let angle2=(angle+(i-1)*Math.PI/10);
+                let angle2=(angle+(i-1)*Math.PI/7);
                 let vx = Math.cos(angle2), vy = Math.sin(angle2);
-                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             }
             this.skill_2_codetime=3;
         }
@@ -861,13 +1074,13 @@ class Player extends GameObject {
         else if(skill==="powershot")
         {
             let x = this.x, y = this.y;
-            let radius = 7;
+            let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "SpringGreen";
-            let speed = this.playground.height;
-            let move_length = 1200;
-            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 10);
+            let speed = this.speed*6;
+            let move_length = 1.6;
+            new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime=3;
         }
     }
@@ -887,6 +1100,11 @@ class Player extends GameObject {
 
     update() {
 
+        if (this.is_me && this.playground.focus_player === this) {
+            this.playground.re_calculate_cx_cy(this.x, this.y);
+        }
+
+
         this.spent_time += this.timedelta / 1000;
         if(this.is_me)
             this.update_coldtime();
@@ -899,7 +1117,7 @@ class Player extends GameObject {
         }
 
 
-        if(this.damage_speed>10)
+        if(this.damage_speed > this.eps)
         {
             this.vx=this.vy=0;
             this.move_length=0;
@@ -907,6 +1125,7 @@ class Player extends GameObject {
             this.y+=this.damage_y*this.damage_speed*this.timedelta/1000;
             this.damage_speed*=this.friction;
         }
+
         else
         {
             if (this.move_length < this.eps) {
@@ -914,8 +1133,8 @@ class Player extends GameObject {
                 this.vx = this.vy = 0;
                 if(!this.is_me)
                 {
-                    let tx=Math.random()*this.playground.width;
-                    let ty=Math.random()*this.playground.height;
+                    let tx=Math.random() * this.playground.virtual_map_width;
+                    let ty=Math.random() * this.playground.virtual_map_height;
                     this.move_to(tx,ty);
                 }
             } else {
@@ -939,6 +1158,8 @@ class Player extends GameObject {
 
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
 
         if(this.speed===0)
         {
@@ -951,9 +1172,18 @@ class Player extends GameObject {
             if (this.shield && this.shield_pass_time <= 2) 
             {
                 this.shield_pass_time += this.timedelta / 1000;
+
+                let scale = this.playground.scale;
+                let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+                if (ctx_x < -0.1 * this.playground.width / scale ||
+                    ctx_x > 1.1 * this.playground.width / scale ||
+                    ctx_y < -0.1 * this.playground.height / scale ||
+                    ctx_y > 1.1 * this.playground.height / scale) {
+                    return;
+                }
                 this.ctx.beginPath();
-                this.ctx.arc(this.x, this.y, this.radius * 3.9, 0, Math.PI * 2);
-                this.ctx.arc(this.x, this.y, this.radius * 4.0, 0, Math.PI * 2, true);
+                this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale * 3.9, 0, Math.PI * 2);
+                this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale * 4.0, 0, Math.PI * 2, true);
                 this.ctx.fillStyle = 'silver';
                 this.ctx.fill();
             }
@@ -962,14 +1192,13 @@ class Player extends GameObject {
             this.skill_2_codetime=3;
             this.shield_pass_time = 0;
         }
-
-
             this.ctx.save();
+            this.ctx.strokeStyle = this.color;
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+            this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
             this.render_skill_coldtime();
         }
@@ -977,45 +1206,48 @@ class Player extends GameObject {
         else
         {
             this.ctx.beginPath();
-            this.ctx.arc(this.x , this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
-            this.ctx.fill();            
+            this.ctx.fill();
+        
         }
     }
 
     render_skill_coldtime() {
-        let x = this.playground.width-150, y = this.playground.height-50, r = this.playground.height*0.04;
+
+        let scale = this.playground.scale;
+        let x = this.playground.width/scale-0.2, y = 0.9, r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
+        this.ctx.arc(x* scale, y* scale, r* scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.fireball_img, (x - r), (y - r), r * 2, r * 2);
+        this.ctx.drawImage(this.fireball_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
         this.ctx.restore();
 
         if (this.skill_1_codetime > 0) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x, y);
-            this.ctx.arc(x, y, r, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime) - Math.PI / 2, true);
-            this.ctx.lineTo(x, y);
+            this.ctx.moveTo(x * scale, y* scale);
+            this.ctx.arc(x * scale, y* scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime/2) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
 
-        x = this.playground.width-70, y = this.playground.height-50, r = this.playground.height*0.04;
+        x = this.playground.width/scale-0.1, y = 0.9, r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.skill_2_img, (x - r), (y - r), r * 2, r * 2);
+        this.ctx.drawImage(this.skill_2_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
         this.ctx.restore();
 
         if (this.skill_2_codetime > 0) {
             this.ctx.beginPath();
-            this.ctx.moveTo(x, y);
-            this.ctx.arc(x, y, r, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime/3) - Math.PI / 2, true);
-            this.ctx.lineTo(x, y);
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime/3) - Math.PI / 2, true);
+            this.ctx.lineTo(x* scale, y* scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
@@ -1040,22 +1272,34 @@ class Player extends GameObject {
             }
     
             this.radius-=damage;
-            this.speed*=1.7;
+            this.speed*=1.2;
     
     
-            if(this.radius<10)
+            if(this.radius<this.eps)
             {
                 if(this.is_me===true)
                 {
                     this.playground.score_board.lose();
-                    this.playground.live_count=8;
+                    this.playground.root.$menu.bgSound_lose.play();
+                    this.playground.live_count=10;
                 }
                 else
+                {
                     this.playground.live_count--;
+                    if(this.playground.live_count===4)
+                        this.playground.root.$menu.bgSound_unstop.play();
+                    if(this.playground.live_count===3)
+                        this.playground.root.$menu.bgSound_domainting.play();
+                    if(this.playground.live_count===2)
+                        this.playground.root.$menu.bgSound_godlike.play();
+                    if(this.playground.live_count===1)
+                        this.playground.root.$menu.bgSound_lendy.play();
+                }
                 if(this.playground.live_count === 0)
                 {
+                    this.playground.root.$menu.bgSound_win.play();
                     this.playground.score_board.win();
-                    this.playground.live_count=8;
+                    this.playground.live_count=10;
                 }
                 this.destroy();
                 return false;
@@ -1063,13 +1307,13 @@ class Player extends GameObject {
             this.damage_x=Math.cos(angle);
             this.damage_y=Math.sin(angle);
             this.damage_speed=damage*80;
-            this.speed*=0.8;
+            // this.speed*=0.8;
         }
         else if(skill==="iceball")
         {
             this.radius-=damage;
     
-            if(this.radius<10)
+            if(this.radius<this.eps)
             {
                 if(!this.is_me)
                     this.playground.live_count--;
@@ -1143,7 +1387,6 @@ class ScoreBoard extends GameObject {
     lose() {
         this.state = "lose";
 
-        console.log("内输");
         let outer = this;
         outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
         setTimeout(function() {
@@ -1241,10 +1484,19 @@ class FireBall extends GameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
+
     }
 }
 class IceBall extends GameObject {
@@ -1323,8 +1575,16 @@ class IceBall extends GameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
@@ -1406,8 +1666,16 @@ class PowerShot extends GameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
@@ -1415,8 +1683,14 @@ class PowerShot extends GameObject {
 class GamePlayground {
     constructor(root) {
         this.root = root;
-        this.live_count=8;
+        this.live_count=10;
         this.$playground = $(`<div class="game-playground"></div>`);
+        
+        this.root.$game.append(this.$playground);
+
+        this.bgSound1 = document.getElementById("shoot_ball");
+        this.hide();
+        this.focus_player=null;
         this.start();
     }
 
@@ -1427,24 +1701,81 @@ class GamePlayground {
         return '#' + hex; //返回‘#'开头16进制颜色
     }
 
+    create_uuid() {
+        let res = "";
+        for (let i = 0; i < 8; i++) {
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+        return res;
+    }
+
+
 
     start() 
     {
-        
+        let outer = this;
+        let uuid = this.create_uuid();
+        $(window).on(`resize.${uuid}`, function () {
+            outer.resize();
+        });
     }
+
+    resize() {
+
+        // this.width = this.$playground.width();
+        // this.height = this.$playground.height();
+        // this.unit = Math.min(this.width / 16, this.height / 9);
+        // this.width = this.unit * 16;
+        // this.height = this.unit * 9;
+
+        this.scale = this.height;
+        
+
+        if (this.game_map) this.game_map.resize();
+    }
+
+    re_calculate_cx_cy(x, y) {
+        this.cx = x - 0.5 * this.width / this.scale;
+        this.cy = y - 0.5 * this.height/ this.scale;
+
+        let l = this.game_map.l;
+        if (this.focus_player) {
+            this.cx = Math.max(this.cx, -2 * l);
+            this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
+            this.cy = Math.max(this.cy, -l);
+            this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
+        }
+    }
+
+
+
     show()
     {
         this.$playground.show();
-        this.root.$game.append(this.$playground);
+        
         this.width=this.$playground.width();
         this.height=this.$playground.height();
+
+        this.virtual_map_width = 3;
+        this.virtual_map_height = this.virtual_map_width; 
+        
         this.game_map=new GameMap(this);
+        this.resize();
         this.players=[];
-        this.players.push(new Player(this,this.width/2,this.height/2,this.height*0.05,"white",this.height*0.15,true));
-        for(let i=0;i<8;i++)
-            this.players.push(new Player(this,this.width/2,this.height/2,this.height*0.05,this.get_random_color(),this.height*0.15,false));
+        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5,0.05,"white",0.15,true));
+        for(let i=0;i<10;i++)
+            this.players.push(new Player(this,this.width / 2 / this.scale, 1.5,0.05,this.get_random_color(),0.15,false));
+        
+        // this.game_map.generate_grid();
+        
         this.score_board=new ScoreBoard(this);
         this.notice_board=new NoticeBoard(this);
+        
+        // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
+        this.focus_player = this.players[0];
+
+        
     }
     hide()
     {
@@ -1594,6 +1925,7 @@ class GameSetting {
         });
         this.$turn_back.click(function() {
             outer.hide();
+            outer.root.$menu.bgSound_hero.pause();
             outer.root.$menu.show();
         });
         this.$img_1.click(function(){
@@ -1634,7 +1966,6 @@ class GameSetting {
                 }
             }
         });
-        console.log(this.score);
         this.$setting.show();
     }
     hide() {

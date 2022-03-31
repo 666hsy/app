@@ -44,7 +44,6 @@ class ScoreBoard extends GameObject {
     lose() {
         this.state = "lose";
 
-        console.log("内输");
         let outer = this;
         outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
         setTimeout(function() {
