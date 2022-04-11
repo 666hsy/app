@@ -13,7 +13,6 @@ def register(request):
         return JsonResponse({
             'result': "用户名和密码不能为空"
         })
-    print(username)
     if password != password_confirm:
         return JsonResponse({
             'result': "两个密码不一致",
@@ -25,7 +24,6 @@ def register(request):
     user = User(username=username)
     user.set_password(password)
     user.save()
-    print(user)
     Player.objects.create(user=user)
     login(request, user)
     print("success")

@@ -15,5 +15,7 @@ def getinfo(request):
             'result': "success",
             'username': player.user.username,
             'score': player.score,
+            'money': player.money,
+            'tool': player.tool,
         })
 

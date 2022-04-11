@@ -3,6 +3,8 @@ class GameLogin {
         this.root = root;
         this.username = "";
         this.score = 0;
+        this.money = 0;
+        this.tool=null;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -103,6 +105,8 @@ class GameLogin {
                 if (resp.result === "success") {
                     outer.username = resp.username;
                     outer.score=resp.score;
+                    outer.money=resp.money;
+                    outer.tool=resp.tool;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
@@ -253,6 +257,23 @@ class ChatSocket {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'add',
             'username': username,
+        }))
+    }
+
+    add_money(username,money) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'add_money',
+            'username': username,
+            'money': money,
+        }))
+    }
+
+    buy(username,name,id) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'buy',
+            'username': username,
+            'name': name,
+            'id':id,
         }))
     }
 
@@ -422,12 +443,16 @@ class ChatSocket {
             开始游戏
         </div>
         <br>
-        <div class="game-menu-field-item game-menu-field-item-reward">
-            打赏
+        <div class="game-menu-field-item game-menu-field-item-shop">
+            商城
         </div>
         <br>
         <div class="game-menu-field-item game-menu-field-item-setting">
             设置
+        </div>
+        <br>
+        <div class="game-menu-field-item game-menu-field-item-reward">
+            打赏
         </div>
     </div>
 </div>
@@ -444,6 +469,7 @@ class ChatSocket {
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
+        this.$shop=this.$menu.find('.game-menu-field-item-shop');
         this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
@@ -472,6 +498,12 @@ class ChatSocket {
             outer.hide();
             outer.root.playground.show();
         });
+
+        this.$shop.click(function(){
+            outer.hide();
+            outer.root.$shop.show();
+        });
+
         this.$reward.click(function(){
             outer.hide();
             outer.root.$reward.show();
@@ -704,7 +736,6 @@ class GameMap extends GameObject {
     start() {
         this.$canvas.focus();
         this.generate_grid();
-        // this.generate_wall();
     }
 
     resize() {
@@ -863,7 +894,10 @@ class Player extends GameObject {
         this.shield=false;
         this.shield_pass_time = 0;
         this.cold_pass_time = 0;
-
+        this.tool=this.playground.root.$login.tool;
+        this.tool=String(this.tool);
+        if(this.tool.indexOf("a")!=-1)
+            this.speed+=0.03
         if(this.is_me)
         {
             this.img = new Image();
@@ -912,11 +946,18 @@ class Player extends GameObject {
                 this.skill_2_img.src = "http://39.106.22.254:8000/static/image/setting/hero.jpg";
             }
             //英雄5
-            if(this.img.src==="http://39.106.22.254:8000/static/image/setting/5.jpg")
+            if(this.img.src==="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png")
             {
                 this.hero=5;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://git.acwing.com/TomG/resources/-/raw/master/images/Powershot_icon.png";
+            }
+            //英雄6
+            if(this.img.src==="https://img.anfensi.com/upload/2019-3/201932790313858.png")
+            {
+                this.hero=6;
+                this.skill_2_img = new Image();
+                this.skill_2_img.src = "https://img.599ku.com/element_min_new_pic/30/88/57/8/f925a433d944223850fc57ff37065486.png";
             }
         }
     }
@@ -993,6 +1034,8 @@ class Player extends GameObject {
                         outer.cur_skill="manyfire";
                     else if(outer.hero===5)
                         outer.cur_skill="powershot";
+                    else if(outer.hero===6)
+                        outer.cur_skill="mogu";
                     outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
                 }
             }
@@ -1045,9 +1088,7 @@ class Player extends GameObject {
             let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
-            let color = "plum";
-            if(this.is_me)
-                color="MediumSlateBlue";
+            let color="MediumSlateBlue";
             let speed = this.speed*3;
             let move_length = 0.8;
             new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
@@ -1083,6 +1124,18 @@ class Player extends GameObject {
             new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime=3;
         }
+        else if(skill==="mogu")
+        {
+            let x = this.x, y = this.y;
+            let radius = 0.02;
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            let vx = 0, vy = 0;
+            let color = "LimeGreen";
+            let speed = 0;
+            let move_length = 10;
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.skill_2_codetime=3;
+        }
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -1109,7 +1162,7 @@ class Player extends GameObject {
         if(this.is_me)
             this.update_coldtime();
 
-        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0){  //机器放技能
+        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0&&this.speed!=0){  //机器放技能
             let player=this.playground.players[0];
             let tx=player.x+player.speed*this.vx*this.timedelta/1000*0.3;
             let ty=player.y+player.speed*this.vy*this.timedelta/1000*0.3;
@@ -1165,7 +1218,11 @@ class Player extends GameObject {
         {
             if(this.cold_pass_time <= 2)
                 this.cold_pass_time += this.timedelta / 1000;
-            else this.speed=this.temp;
+            else 
+            {
+                this.speed=this.temp;
+                this.cold_pass_time = 0
+            }
         }
         if(this.is_me)
         {
@@ -1307,7 +1364,6 @@ class Player extends GameObject {
             this.damage_x=Math.cos(angle);
             this.damage_y=Math.sin(angle);
             this.damage_speed=damage*80;
-            // this.speed*=0.8;
         }
         else if(skill==="iceball")
         {
@@ -1315,12 +1371,20 @@ class Player extends GameObject {
     
             if(this.radius<this.eps)
             {
-                if(!this.is_me)
-                    this.playground.live_count--;
+                this.playground.live_count--;
+                if(this.playground.live_count===4)
+                    this.playground.root.$menu.bgSound_unstop.play();
+                if(this.playground.live_count===3)
+                    this.playground.root.$menu.bgSound_domainting.play();
+                if(this.playground.live_count===2)
+                    this.playground.root.$menu.bgSound_godlike.play();
+                if(this.playground.live_count===1)
+                    this.playground.root.$menu.bgSound_lendy.play();
                 if(this.playground.live_count === 0)
                 {
+                    this.playground.root.$menu.bgSound_win.play();
                     this.playground.score_board.win();
-                    this.playground.live_count=8;
+                    this.playground.live_count=10;
                 }
                 this.destroy();
                 return false;
@@ -1377,7 +1441,7 @@ class ScoreBoard extends GameObject {
 
         let outer = this;
         outer.playground.root.$menu.gcs.add_score(outer.playground.root.$menu.root.$login.username);
-        console.log("win");
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,50);
 
         setTimeout(function() {
             outer.add_listening_events();
@@ -1389,6 +1453,7 @@ class ScoreBoard extends GameObject {
 
         let outer = this;
         outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,10);
         setTimeout(function() {
             outer.add_listening_events();
         }, 1000);
@@ -1723,15 +1788,7 @@ class GamePlayground {
 
     resize() {
 
-        // this.width = this.$playground.width();
-        // this.height = this.$playground.height();
-        // this.unit = Math.min(this.width / 16, this.height / 9);
-        // this.width = this.unit * 16;
-        // this.height = this.unit * 9;
-
-        this.scale = this.height;
-        
-
+        this.scale = this.height;        
         if (this.game_map) this.game_map.resize();
     }
 
@@ -1856,8 +1913,15 @@ class GameSetting {
         this.root = root;
         this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
         this.score=this.root.$login.score;
+        this.money=this.root.$login.money;
         this.$setting = $(`
 <div class="game-setting">
+    <audio id="hero6">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/202011/13592.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="hero5">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201903/11308.mp3" type="audio/mpeg">
+    </audio>
     <div class="game-reward-title">
         选择英雄
     </div>
@@ -1875,7 +1939,10 @@ class GameSetting {
             <img class ="img-4" src="../../static/image/setting/4.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img class ="img-5" src="../../static/image/setting/5.jpg" />
+            <img class ="img-5" src="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png" />
+        </div>
+        <div class="game-setting-field-item">
+            <img class ="img-6" src="https://img.anfensi.com/upload/2019-3/201932790313858.png" />
         </div>
         <div class='game-setting-origin'>
             恢复默认
@@ -1908,7 +1975,9 @@ class GameSetting {
         this.$img_3 =  this.$setting.find('.img-3');
         this.$img_4 =  this.$setting.find('.img-4');
         this.$img_5 =  this.$setting.find('.img-5');
-
+        this.$img_6 =  this.$setting.find('.img-6');
+        this.bgSound_hero5 = document.getElementById("hero5");
+        this.bgSound_hero6 = document.getElementById("hero6");
 
         this.start();
     }
@@ -1945,8 +2014,12 @@ class GameSetting {
             alert("已选择：hero4");
         });
         this.$img_5.click(function(){
-            outer.hero="../../static/image/setting/5.jpg";
-            alert("已选择：hero5");
+            outer.hero="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
+            outer.bgSound_hero5.play();
+        });
+        this.$img_6.click(function(){
+            outer.hero="https://img.anfensi.com/upload/2019-3/201932790313858.png";
+            outer.bgSound_hero6.play();
         });
         this.$game_origin.click(function(){
             outer.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
@@ -1973,6 +2046,83 @@ class GameSetting {
     }
 
 }
+class GameShop {
+    constructor(root) {
+        this.root = root;
+        this.money=this.root.$login.money;
+        this.tool=this.root.$login.tool;
+        this.tool=String(this.tool);
+        this.$shop = $(`
+<div class="game-shop">
+    <div class="game-reward-title">
+        欢迎来到英雄之家
+    </div>
+    <div class="game-shop-field">
+        <div class="game-shop-field-item">
+            <img class ="shoose" src="data:image/jpeg;base64,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" />
+        </div>
+    </div>
+    <div class='game-setting-username'>
+        我的金币:${this.money}
+    </div>
+    <div class='game-turn-back'>
+        返回
+    </div>
+</div>
+`);
+        this.hide();
+        
+        this.root.$game.append(this.$shop);
+
+        this.$turn_back = this.$shop.find('.game-turn-back');
+        this.$img_shoose =  this.$shop.find('.shoose');
+
+        this.start();
+    }
+
+    start() {
+        this.add_listening_events();
+    }
+
+    add_listening_events() {
+        let outer = this;
+        this.$turn_back.click(function() {
+            outer.hide();
+            outer.root.$menu.bgSound_hero.pause();
+            outer.root.$menu.show();
+        });
+        this.$img_shoose.click(function(){
+            if(outer.tool.indexOf("a")===-1&&outer.money>=300)
+            {
+                outer.root.$menu.gcs.buy(outer.root.$login.username,"shoose","a");
+                alert("已购买：速度之靴");
+            }
+            else if(outer.tool.indexOf("a")!=-1)
+                alert("已拥有");
+            else
+                alert("金币不足");
+        });
+    }
+
+    show() {
+        let outer = this;
+        $.ajax({
+            url: "http://39.106.22.254:8000/setting/getinfo/",
+            type: "GET",
+            async:false,
+            success: function(resp) {
+                if (resp.result === "success") {
+                    outer.score=resp.score;
+                }
+            }
+        });
+        this.$shop.show();
+    }
+    hide() {
+        this.$shop.hide();
+    }
+
+}
 export class Game{
     constructor(id) {
         this.id = id;
@@ -1981,6 +2131,7 @@ export class Game{
         this.playground = new GamePlayground(this);
         this.$menu = new GameMenu(this);
         this.$login = new GameLogin(this);
+        this.$shop = new GameShop(this);
         this.$setting = new GameSetting(this);
         this.start();
     }

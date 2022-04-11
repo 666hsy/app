@@ -3,6 +3,8 @@ class GameLogin {
         this.root = root;
         this.username = "";
         this.score = 0;
+        this.money = 0;
+        this.tool=null;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -103,6 +105,8 @@ class GameLogin {
                 if (resp.result === "success") {
                     outer.username = resp.username;
                     outer.score=resp.score;
+                    outer.money=resp.money;
+                    outer.tool=resp.tool;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {

@@ -20,7 +20,6 @@ class GameMap extends GameObject {
     start() {
         this.$canvas.focus();
         this.generate_grid();
-        // this.generate_wall();
     }
 
     resize() {

@@ -34,7 +34,7 @@ class ScoreBoard extends GameObject {
 
         let outer = this;
         outer.playground.root.$menu.gcs.add_score(outer.playground.root.$menu.root.$login.username);
-        console.log("win");
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,50);
 
         setTimeout(function() {
             outer.add_listening_events();
@@ -46,6 +46,7 @@ class ScoreBoard extends GameObject {
 
         let outer = this;
         outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,10);
         setTimeout(function() {
             outer.add_listening_events();
         }, 1000);

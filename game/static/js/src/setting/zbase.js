@@ -3,8 +3,15 @@ class GameSetting {
         this.root = root;
         this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
         this.score=this.root.$login.score;
+        this.money=this.root.$login.money;
         this.$setting = $(`
 <div class="game-setting">
+    <audio id="hero6">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/202011/13592.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="hero5">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201903/11308.mp3" type="audio/mpeg">
+    </audio>
     <div class="game-reward-title">
         选择英雄
     </div>
@@ -22,7 +29,10 @@ class GameSetting {
             <img class ="img-4" src="../../static/image/setting/4.jpg" />
         </div>
         <div class="game-setting-field-item">
-            <img class ="img-5" src="../../static/image/setting/5.jpg" />
+            <img class ="img-5" src="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png" />
+        </div>
+        <div class="game-setting-field-item">
+            <img class ="img-6" src="https://img.anfensi.com/upload/2019-3/201932790313858.png" />
         </div>
         <div class='game-setting-origin'>
             恢复默认
@@ -55,7 +65,9 @@ class GameSetting {
         this.$img_3 =  this.$setting.find('.img-3');
         this.$img_4 =  this.$setting.find('.img-4');
         this.$img_5 =  this.$setting.find('.img-5');
-
+        this.$img_6 =  this.$setting.find('.img-6');
+        this.bgSound_hero5 = document.getElementById("hero5");
+        this.bgSound_hero6 = document.getElementById("hero6");
 
         this.start();
     }
@@ -92,8 +104,12 @@ class GameSetting {
             alert("已选择：hero4");
         });
         this.$img_5.click(function(){
-            outer.hero="../../static/image/setting/5.jpg";
-            alert("已选择：hero5");
+            outer.hero="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
+            outer.bgSound_hero5.play();
+        });
+        this.$img_6.click(function(){
+            outer.hero="https://img.anfensi.com/upload/2019-3/201932790313858.png";
+            outer.bgSound_hero6.play();
         });
         this.$game_origin.click(function(){
             outer.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";

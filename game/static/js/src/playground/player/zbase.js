@@ -24,7 +24,10 @@ class Player extends GameObject {
         this.shield=false;
         this.shield_pass_time = 0;
         this.cold_pass_time = 0;
-
+        this.tool=this.playground.root.$login.tool;
+        this.tool=String(this.tool);
+        if(this.tool.indexOf("a")!=-1)
+            this.speed+=0.03
         if(this.is_me)
         {
             this.img = new Image();
@@ -73,11 +76,18 @@ class Player extends GameObject {
                 this.skill_2_img.src = "http://39.106.22.254:8000/static/image/setting/hero.jpg";
             }
             //英雄5
-            if(this.img.src==="http://39.106.22.254:8000/static/image/setting/5.jpg")
+            if(this.img.src==="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png")
             {
                 this.hero=5;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://git.acwing.com/TomG/resources/-/raw/master/images/Powershot_icon.png";
+            }
+            //英雄6
+            if(this.img.src==="https://img.anfensi.com/upload/2019-3/201932790313858.png")
+            {
+                this.hero=6;
+                this.skill_2_img = new Image();
+                this.skill_2_img.src = "https://img.599ku.com/element_min_new_pic/30/88/57/8/f925a433d944223850fc57ff37065486.png";
             }
         }
     }
@@ -154,6 +164,8 @@ class Player extends GameObject {
                         outer.cur_skill="manyfire";
                     else if(outer.hero===5)
                         outer.cur_skill="powershot";
+                    else if(outer.hero===6)
+                        outer.cur_skill="mogu";
                     outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
                 }
             }
@@ -206,9 +218,7 @@ class Player extends GameObject {
             let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
-            let color = "plum";
-            if(this.is_me)
-                color="MediumSlateBlue";
+            let color="MediumSlateBlue";
             let speed = this.speed*3;
             let move_length = 0.8;
             new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
@@ -244,6 +254,18 @@ class Player extends GameObject {
             new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime=3;
         }
+        else if(skill==="mogu")
+        {
+            let x = this.x, y = this.y;
+            let radius = 0.02;
+            let angle = Math.atan2(ty - this.y, tx - this.x);
+            let vx = 0, vy = 0;
+            let color = "LimeGreen";
+            let speed = 0;
+            let move_length = 10;
+            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.skill_2_codetime=3;
+        }
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -270,7 +292,7 @@ class Player extends GameObject {
         if(this.is_me)
             this.update_coldtime();
 
-        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0){  //机器放技能
+        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0&&this.speed!=0){  //机器放技能
             let player=this.playground.players[0];
             let tx=player.x+player.speed*this.vx*this.timedelta/1000*0.3;
             let ty=player.y+player.speed*this.vy*this.timedelta/1000*0.3;
@@ -326,7 +348,11 @@ class Player extends GameObject {
         {
             if(this.cold_pass_time <= 2)
                 this.cold_pass_time += this.timedelta / 1000;
-            else this.speed=this.temp;
+            else 
+            {
+                this.speed=this.temp;
+                this.cold_pass_time = 0
+            }
         }
         if(this.is_me)
         {
@@ -468,7 +494,6 @@ class Player extends GameObject {
             this.damage_x=Math.cos(angle);
             this.damage_y=Math.sin(angle);
             this.damage_speed=damage*80;
-            // this.speed*=0.8;
         }
         else if(skill==="iceball")
         {
@@ -476,12 +501,20 @@ class Player extends GameObject {
     
             if(this.radius<this.eps)
             {
-                if(!this.is_me)
-                    this.playground.live_count--;
+                this.playground.live_count--;
+                if(this.playground.live_count===4)
+                    this.playground.root.$menu.bgSound_unstop.play();
+                if(this.playground.live_count===3)
+                    this.playground.root.$menu.bgSound_domainting.play();
+                if(this.playground.live_count===2)
+                    this.playground.root.$menu.bgSound_godlike.play();
+                if(this.playground.live_count===1)
+                    this.playground.root.$menu.bgSound_lendy.play();
                 if(this.playground.live_count === 0)
                 {
+                    this.playground.root.$menu.bgSound_win.play();
                     this.playground.score_board.win();
-                    this.playground.live_count=8;
+                    this.playground.live_count=10;
                 }
                 this.destroy();
                 return false;

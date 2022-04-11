@@ -55,12 +55,16 @@ class GameMenu {
             开始游戏
         </div>
         <br>
-        <div class="game-menu-field-item game-menu-field-item-reward">
-            打赏
+        <div class="game-menu-field-item game-menu-field-item-shop">
+            商城
         </div>
         <br>
         <div class="game-menu-field-item game-menu-field-item-setting">
             设置
+        </div>
+        <br>
+        <div class="game-menu-field-item game-menu-field-item-reward">
+            打赏
         </div>
     </div>
 </div>
@@ -77,6 +81,7 @@ class GameMenu {
         this.root.$game.append(this.$menu);
         this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
         this.$reward=this.$menu.find('.game-menu-field-item-reward');
+        this.$shop=this.$menu.find('.game-menu-field-item-shop');
         this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
@@ -105,6 +110,12 @@ class GameMenu {
             outer.hide();
             outer.root.playground.show();
         });
+
+        this.$shop.click(function(){
+            outer.hide();
+            outer.root.$shop.show();
+        });
+
         this.$reward.click(function(){
             outer.hide();
             outer.root.$reward.show();

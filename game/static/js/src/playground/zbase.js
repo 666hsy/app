@@ -41,15 +41,7 @@ class GamePlayground {
 
     resize() {
 
-        // this.width = this.$playground.width();
-        // this.height = this.$playground.height();
-        // this.unit = Math.min(this.width / 16, this.height / 9);
-        // this.width = this.unit * 16;
-        // this.height = this.unit * 9;
-
-        this.scale = this.height;
-        
-
+        this.scale = this.height;        
         if (this.game_map) this.game_map.resize();
     }
 

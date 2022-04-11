@@ -6,6 +6,7 @@ export class Game{
         this.playground = new GamePlayground(this);
         this.$menu = new GameMenu(this);
         this.$login = new GameLogin(this);
+        this.$shop = new GameShop(this);
         this.$setting = new GameSetting(this);
         this.start();
     }

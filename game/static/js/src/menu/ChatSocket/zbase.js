@@ -36,6 +36,23 @@ class ChatSocket {
         }))
     }
 
+    add_money(username,money) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'add_money',
+            'username': username,
+            'money': money,
+        }))
+    }
+
+    buy(username,name,id) {
+        this.ws.send(JSON.stringify({   //向服务器发送消息
+            'event': 'buy',
+            'username': username,
+            'name': name,
+            'id':id,
+        }))
+    }
+
     reduce_score(username) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'reduce',
