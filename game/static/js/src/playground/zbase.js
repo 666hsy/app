@@ -7,6 +7,7 @@ class GamePlayground {
         this.root.$game.append(this.$playground);
 
         this.bgSound1 = document.getElementById("shoot_ball");
+        this.skills=[];
         this.hide();
         this.focus_player=null;
         this.start();
@@ -59,7 +60,6 @@ class GamePlayground {
     }
 
 
-
     show()
     {
         this.$playground.show();
@@ -73,11 +73,15 @@ class GamePlayground {
         this.game_map=new GameMap(this);
         this.resize();
         this.players=[];
+        this.towers=[];
         this.players.push(new Player(this, this.width / 2 / this.scale, 1.5,0.05,"white",0.15,true));
         for(let i=0;i<10;i++)
             this.players.push(new Player(this,this.width / 2 / this.scale, 1.5,0.05,this.get_random_color(),0.15,false));
         
-        // this.game_map.generate_grid();
+        this.towers.push(new Tower(this, 0.5, 0.5,0.1,"white"));
+        this.towers.push(new Tower(this, 1.5, 1.5,0.1,"white"));
+        this.towers.push(new Tower(this, 2.5, 2, 0.1,"white"));
+        this.towers.push(new Tower(this, 0.7, 2.5, 0.1,"white"));
         
         this.score_board=new ScoreBoard(this);
         this.notice_board=new NoticeBoard(this);
@@ -91,6 +95,12 @@ class GamePlayground {
     {
         while (this.players && this.players.length > 0) 
             this.players[0].destroy();
+
+        while (this.towers && this.towers.length > 0) 
+            this.towers[0].destroy();
+
+        while (this.skills && this.skills.length > 0) 
+            this.skills[0].destroy();
 
         if (this.game_map) {
             this.game_map.destroy();

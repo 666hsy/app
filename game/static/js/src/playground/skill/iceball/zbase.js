@@ -34,6 +34,15 @@ class IceBall extends GameObject {
                 this.attack(player);
             }
         }
+
+        for(let i=0;i<this.playground.towers.length;i++)
+        {
+            let tower=this.playground.towers[i];
+            if(this.player!==tower&&this.is_collision(tower))
+            {
+                this.attack(tower);
+            }
+        }
         this.render();
     }
 

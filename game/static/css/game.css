@@ -15,7 +15,7 @@
 }
 
 .game-login-login {
-    height: 41vh;
+    height: 43vh;
     width: 20vw;
     position: relative;
     top: 50%;
@@ -43,10 +43,44 @@
     height: 7vh;
 }
 
+.game-login-code {
+    /* position: relative; */
+    height: 7vh;
+}
+
 .game-login-item {
     width: 100%;
     height: 100%;
 }
+
+.game-login-item2 {
+    width: 40%;
+    height: 100%;
+}
+
+.game-login-item2 > input {
+    width: 90%;
+    display:block;
+    float: left;
+    line-height: 4vh;
+    font-size: large;
+    position: relative;
+    top: 50%;
+    left: 58%;
+    transform: translate(-50%, -50%);
+}
+
+.game-login-item2 > canvas {
+    display:block;
+    float:right;
+    background-color: aliceblue;
+    /* top: 50%;*/
+     left: 20%; 
+    /* vertical-align: middle; */
+    /* box-sizing: border-box;
+    border: 1px solid #ddd; */
+    cursor: pointer;  
+  }
 
 .game-login-item > input {
     width: 90%;
@@ -63,7 +97,7 @@
     color: white;
     width: 90%;
     line-height: 4vh;
-    font-size: large;
+    font-size: 3vh;
     position: relative;
     top: 50%;
     left: 50%;
@@ -82,7 +116,7 @@
 
 .game-login-option {
     color: white;
-    font-size: 2vh;
+    font-size: 2.5vh;
     display: inline;
     float: right;
     padding-right: 1vw;

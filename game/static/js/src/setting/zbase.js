@@ -34,6 +34,9 @@ class GameSetting {
         <div class="game-setting-field-item">
             <img class ="img-6" src="https://img.anfensi.com/upload/2019-3/201932790313858.png" />
         </div>
+        <div class="game-setting-field-item">
+            <img class ="img-7" src="https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png" />
+        </div>
         <div class='game-setting-origin'>
             恢复默认
         </div>
@@ -66,6 +69,7 @@ class GameSetting {
         this.$img_4 =  this.$setting.find('.img-4');
         this.$img_5 =  this.$setting.find('.img-5');
         this.$img_6 =  this.$setting.find('.img-6');
+        this.$img_7 =  this.$setting.find('.img-7');
         this.bgSound_hero5 = document.getElementById("hero5");
         this.bgSound_hero6 = document.getElementById("hero6");
 
@@ -110,6 +114,10 @@ class GameSetting {
         this.$img_6.click(function(){
             outer.hero="https://img.anfensi.com/upload/2019-3/201932790313858.png";
             outer.bgSound_hero6.play();
+        });
+        this.$img_7.click(function(){
+            outer.hero="https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
+            alert("已选择：hero7");
         });
         this.$game_origin.click(function(){
             outer.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";

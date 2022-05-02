@@ -15,7 +15,6 @@ class ChatSocket {
 
         this.ws.onmessage = function (e) {  //收到来自服务器的消息
             let data = JSON.parse(e.data);
-            console.log(data);
             let event = data['event'];
             if (event === 'message')
                 outer.receive_message(data['username'], data['time'], data['text']);

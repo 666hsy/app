@@ -18,14 +18,13 @@ class ChatField {
         this.add_listening_events();
     }
 
-
     add_listening_events() {
         let outer = this;
 
         this.$input.keydown(function (e) {
             if (e.which === 13) {  // ENTER
                 let username = outer.menu.root.$login.username;
-                let text = outer.$input.val();
+                let text = outer.escapeHtml(outer.$input.val());
                 if (text) {
                     outer.$input.val("");
                     Date.prototype.format = function (fmt) {
@@ -61,9 +60,24 @@ class ChatField {
         return $(`<div style="color:${color}">${message}</div>`);
     }
 
+    escapeHtml (string) {
+       var entityMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+          };
+        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+          return entityMap[s];
+        });
+      }
+
     add_message(username, time, text) {
         let message = `[${username}][${time}]<br>${text}`;
-        console.log(message);
         let color = 'white';
         if (username === this.menu.root.$login.username) {
             color = 'AliceBlue';

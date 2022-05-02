@@ -80,14 +80,21 @@ class Player extends GameObject {
             {
                 this.hero=5;
                 this.skill_2_img = new Image();
-                this.skill_2_img.src = "https://git.acwing.com/TomG/resources/-/raw/master/images/Powershot_icon.png";
+                this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/Ezreal_RisingSpellForce.png";
             }
             //英雄6
             if(this.img.src==="https://img.anfensi.com/upload/2019-3/201932790313858.png")
             {
                 this.hero=6;
                 this.skill_2_img = new Image();
-                this.skill_2_img.src = "https://img.599ku.com/element_min_new_pic/30/88/57/8/f925a433d944223850fc57ff37065486.png";
+                this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/TeemoRCast.png";
+            }
+            //英雄7
+            if(this.img.src==="https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png")
+            {
+                this.hero=7;
+                this.skill_2_img = new Image();
+                this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AurelionSolW.png";
             }
         }
     }
@@ -166,6 +173,8 @@ class Player extends GameObject {
                         outer.cur_skill="powershot";
                     else if(outer.hero===6)
                         outer.cur_skill="mogu";
+                    else if(outer.hero===7)
+                        outer.cur_skill="planet";
                     outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
                 }
             }
@@ -249,7 +258,7 @@ class Player extends GameObject {
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "SpringGreen";
-            let speed = this.speed*6;
+            let speed = this.speed*4;
             let move_length = 1.6;
             new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime=3;
@@ -263,7 +272,24 @@ class Player extends GameObject {
             let color = "LimeGreen";
             let speed = 0;
             let move_length = 10;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.playground.skills.push(new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01));
+            this.skill_2_codetime=3;
+        }
+        else if(skill==="planet")
+        {
+            if (!this.planet_system_on)
+            {
+                let radius = 0.1;
+                let T = 2;
+                let start_rotius = this.radius * 5;
+                let satellite_num = 3;
+                this.planet_system = new Planet(this.playground, this, this, radius, T, start_rotius, satellite_num, 0);
+                this.planet_system_on = 1;
+            }
+            else 
+            {
+                if (this.planet_system) this.planet_system.destroy();
+            }
             this.skill_2_codetime=3;
         }
     }
@@ -378,6 +404,10 @@ class Player extends GameObject {
             this.shield = false;
             this.skill_2_codetime=3;
             this.shield_pass_time = 0;
+        }
+        else if (this.planet_system_on) {
+            this.planet_system_on = false;
+            this.skill_2_codetime=3;
         }
             this.ctx.save();
             this.ctx.strokeStyle = this.color;
