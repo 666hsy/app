@@ -46,6 +46,7 @@ class GameShop {
         this.$img_shoose.click(function(){
             if(outer.tool.indexOf("a")===-1&&outer.money>=300)
             {
+                console.log(outer.money);
                 outer.root.$menu.gcs.buy(outer.root.$login.username,"shoose","a");
                 alert("已购买：速度之靴");
             }
@@ -57,17 +58,17 @@ class GameShop {
     }
 
     show() {
-        let outer = this;
-        $.ajax({
-            url: "https://yuanaiv.top/setting/getinfo/",
-            type: "GET",
-            async:false,
-            success: function(resp) {
-                if (resp.result === "success") {
-                    outer.score=resp.score;
-                }
-            }
-        });
+        // let outer = this;
+        // $.ajax({
+        //     url: "https://yuanaiv.top/setting/getinfo/",
+        //     type: "GET",
+        //     async:false,
+        //     success: function(resp) {
+        //         if (resp.result === "success") {
+        //             outer.money=resp.money;
+        //         }
+        //     }
+        // });
         this.$shop.show();
     }
     hide() {

@@ -5,7 +5,8 @@ class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     score = models.IntegerField(default=1500)
     money = models.IntegerField(default=0)
-    tool=models.CharField(max_length=30,default="")
+    tool=models.CharField(max_length=30,default="",blank=True,null=True)
+    openid=models.CharField(default="",max_length=50,blank=True,null=True);
 
     def __str__(self):
         return str(self.user)

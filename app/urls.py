@@ -21,7 +21,7 @@ from django.conf.urls import url ##新增
 
 urlpatterns = [
     path('',include('game.urls.index')),
-    # path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     url(r'^static/(?P<path>.*)$', static.serve,
       {'document_root': settings.STATIC_ROOT}, name='static'),
 ]

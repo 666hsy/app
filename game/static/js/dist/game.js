@@ -41,7 +41,12 @@ class GameLogin {
         <div class="game-login-option">
             注册
         </div>
-        <br>
+        <div class = "game-login-qq">
+            <image width="30" src="https://yeahye.com/media/image/qq_logo.jpg">
+            <div>
+                QQ一键登录
+            </div>
+        </div>
     </div>
 
     <div class="game-login-register">
@@ -96,6 +101,8 @@ class GameLogin {
         this.$register_submit = this.$register.find(".game-login-submit button");
         this.$register_error_message = this.$register.find(".game-login-error-message");
         this.$register_login = this.$register.find(".game-login-option");
+
+        this.$qq_login = this.$login.find('.game-login-qq img');
 
         this.start();
         this.root.$game.append(this.$login);
@@ -194,6 +201,9 @@ class GameLogin {
 
     add_listening_events_login() {
         let outer = this;
+        this.$qq_login.click(function(){
+            outer.qq_login();
+        });
         this.$login_register.click(function() {
             outer.$login_error_message.empty();
             outer.register();
@@ -205,6 +215,18 @@ class GameLogin {
             outer.show_num = [];
             outer.draw(outer.show_num);
         });
+    }
+
+    qq_login() {
+        $.ajax({
+            url : "https://www.yuanaiv.top/setting/qq_login/apply_code",
+            type : "GET",
+            success : function(resp) {
+                if(resp.result === "success") {
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        })
     }
 
     login_on_remote() {  // 在远程服务器上登录
@@ -410,6 +432,7 @@ class ChatSocket {
     }
 
     start() {
+        
         this.add_listening_events();
     }
 
@@ -2524,6 +2547,7 @@ class GameShop {
         this.$img_shoose.click(function(){
             if(outer.tool.indexOf("a")===-1&&outer.money>=300)
             {
+                console.log(outer.money);
                 outer.root.$menu.gcs.buy(outer.root.$login.username,"shoose","a");
                 alert("已购买：速度之靴");
             }
@@ -2535,17 +2559,17 @@ class GameShop {
     }
 
     show() {
-        let outer = this;
-        $.ajax({
-            url: "https://yuanaiv.top/setting/getinfo/",
-            type: "GET",
-            async:false,
-            success: function(resp) {
-                if (resp.result === "success") {
-                    outer.score=resp.score;
-                }
-            }
-        });
+        // let outer = this;
+        // $.ajax({
+        //     url: "https://yuanaiv.top/setting/getinfo/",
+        //     type: "GET",
+        //     async:false,
+        //     success: function(resp) {
+        //         if (resp.result === "success") {
+        //             outer.money=resp.money;
+        //         }
+        //     }
+        // });
         this.$shop.show();
     }
     hide() {
