@@ -27,24 +27,14 @@ class PowerShot extends GameObject {
         }
         this.update_move();
 
-        for(let i=0;i<this.playground.players.length;i++)
-        {
-            let player=this.playground.players[i];
-            if(this.player!==player&&this.is_collision(player))
-            {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
             }
         }
 
-        for(let i=0;i<this.playground.towers.length;i++)
-        {
-            let tower=this.playground.towers[i];
-            if(this.player!==tower&&this.is_collision(tower))
-            {
-                this.attack(tower);
-            }
-        }
-        
+
         this.render();
     }
 
@@ -56,7 +46,7 @@ class PowerShot extends GameObject {
     }
 
     update_attack() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) {
+        for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
@@ -80,7 +70,7 @@ class PowerShot extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("fireball",angle, this.damage);
+        player.is_attacked("fireball", angle, this.damage);
     }
 
     render() {

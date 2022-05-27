@@ -1,20 +1,20 @@
 class GamePlayground {
     constructor(root) {
         this.root = root;
-        this.live_count=10;
-        this.tower_count=4;
+        this.live_count = 10;
+        this.tower_count = 4;
         this.$playground = $(`<div class="game-playground"></div>`);
-        
+
         this.root.$game.append(this.$playground);
 
         this.bgSound1 = document.getElementById("shoot_ball");
-        this.skills=[];
+        this.skills = [];
         this.hide();
-        this.focus_player=null;
+        this.focus_player = null;
         this.start();
     }
 
-    get_random_color(){
+    get_random_color() {
         var hex = Math.floor(Math.random() * 16777216).toString(16); //生成ffffff以内16进制数
         while (hex.length < 6)  //while循环判断hex位数，少于6位前面加0凑够6位
             hex = '0' + hex;
@@ -32,8 +32,7 @@ class GamePlayground {
 
 
 
-    start() 
-    {
+    start() {
         let outer = this;
         let uuid = this.create_uuid();
         $(window).on(`resize.${uuid}`, function () {
@@ -43,13 +42,13 @@ class GamePlayground {
 
     resize() {
 
-        this.scale = this.height;        
+        this.scale = this.height;
         if (this.game_map) this.game_map.resize();
     }
 
     re_calculate_cx_cy(x, y) {
         this.cx = x - 0.5 * this.width / this.scale;
-        this.cy = y - 0.5 * this.height/ this.scale;
+        this.cy = y - 0.5 * this.height / this.scale;
 
         let l = this.game_map.l;
         if (this.focus_player) {
@@ -61,46 +60,44 @@ class GamePlayground {
     }
 
 
-    show()
-    {
-        this.$playground.show();
-        
-        this.width=this.$playground.width();
-        this.height=this.$playground.height();
+    show() {
+        this.$playground.show(500);
+
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
 
         this.virtual_map_width = 3;
-        this.virtual_map_height = this.virtual_map_width; 
-        
-        this.game_map=new GameMap(this);
+        this.virtual_map_height = this.virtual_map_width;
+
+        this.game_map = new GameMap(this);
         this.resize();
-        this.players=[];
-        this.towers=[];
-        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5,0.05,"white",0.15,true));
-        for(let i=0;i<10;i++)
-            this.players.push(new Player(this,this.width / 2 / this.scale, 1.5,0.05,this.get_random_color(),0.15,false));
-        
-        this.towers.push(new Tower(this, 0.5, 0.5,0.1,"white"));
-        this.towers.push(new Tower(this, 1.5, 1.5,0.1,"white"));
-        this.towers.push(new Tower(this, 2.5, 2, 0.1,"white"));
-        this.towers.push(new Tower(this, 0.7, 2.5, 0.1,"white"));
-        
-        this.score_board=new ScoreBoard(this);
-        this.notice_board=new NoticeBoard(this);
-        
+        this.players = [];
+        this.towers = [];
+        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, true));
+        for (let i = 0; i < 10; i++)
+            this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, false));
+
+        this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
+        this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
+        this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
+        this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+
+        this.score_board = new ScoreBoard(this);
+        this.notice_board = new NoticeBoard(this);
+
         // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
         this.focus_player = this.players[0];
 
-        
+
     }
-    hide()
-    {
-        while (this.players && this.players.length > 0) 
+    hide() {
+        while (this.players && this.players.length > 0)
             this.players[0].destroy();
 
-        while (this.towers && this.towers.length > 0) 
+        while (this.towers && this.towers.length > 0)
             this.towers[0].destroy();
 
-        while (this.skills && this.skills.length > 0) 
+        while (this.skills && this.skills.length > 0)
             this.skills[0].destroy();
 
         if (this.game_map) {
@@ -115,7 +112,7 @@ class GamePlayground {
 
         this.$playground.empty();
 
-        this.$playground.hide();
+        this.$playground.hide(500);
     }
 
 }

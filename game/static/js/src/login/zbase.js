@@ -4,7 +4,7 @@ class GameLogin {
         this.username = "";
         this.score = 0;
         this.money = 0;
-        this.tool=null;
+        this.tool = null;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -90,7 +90,7 @@ class GameLogin {
         this.$login_register = this.$login.find(".game-login-option");
 
         this.$login_code = this.$login.find(".game-login-code input");
-        this.$login_canvas=this.$login.find(".game-login-code canvas");
+        this.$login_canvas = this.$login.find(".game-login-code canvas");
 
         this.$login_login.hide();
 
@@ -111,15 +111,15 @@ class GameLogin {
 
 
     draw(show_num) {
-        var canvas_width=100;
-        var canvas_height=35;
+        var canvas_width = 100;
+        var canvas_height = 35;
         var ctx = this.$login_canvas[0].getContext('2d');//获取到canvas画图的环境，演员表演的舞台
         ctx.canvas.width = canvas_width;
         ctx.canvas.height = canvas_height;
         var sCode = "a,b,c,d,e,f,g,h,i,j,k,m,n,p,q,r,s,t,u,v,w,x,y,z,A,B,C,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z,1,2,3,4,5,6,7,8,9,0";
         var aCode = sCode.split(",");
         var aLength = aCode.length;//获取到数组的长度
-        
+
         for (var i = 0; i < 4; i++) {  //这里的for循环可以控制验证码位数（如果想显示6位数，4改成6即可）
             var j = Math.floor(Math.random() * aLength);//获取到随机的索引值
             // var deg = Math.random() * 30 * Math.PI / 180;//产生0~30之间的随机弧度
@@ -169,21 +169,20 @@ class GameLogin {
         this.draw(this.show_num);
         this.getinfo();
         this.add_listening_events();
-}
+    }
 
-    getinfo()
-    {
+    getinfo() {
         let outer = this;
         $.ajax({
             url: "https://www.yuanaiv.top/setting/getinfo/",
             type: "GET",
-            async:false,
-            success: function(resp) {
+            async: false,
+            success: function (resp) {
                 if (resp.result === "success") {
                     outer.username = resp.username;
-                    outer.score=resp.score;
-                    outer.money=resp.money;
-                    outer.tool=resp.tool;
+                    outer.score = resp.score;
+                    outer.money = resp.money;
+                    outer.tool = resp.tool;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
@@ -201,17 +200,17 @@ class GameLogin {
 
     add_listening_events_login() {
         let outer = this;
-        this.$qq_login.click(function(){
+        this.$qq_login.click(function () {
             outer.qq_login();
         });
-        this.$login_register.click(function() {
+        this.$login_register.click(function () {
             outer.$login_error_message.empty();
             outer.register();
         });
-        this.$login_submit.click(function() {
+        this.$login_submit.click(function () {
             outer.login_on_remote();
         });
-        this.$login_canvas.click(function() {
+        this.$login_canvas.click(function () {
             outer.show_num = [];
             outer.draw(outer.show_num);
         });
@@ -219,10 +218,10 @@ class GameLogin {
 
     qq_login() {
         $.ajax({
-            url : "https://www.yuanaiv.top/setting/qq_login/apply_code",
-            type : "GET",
-            success : function(resp) {
-                if(resp.result === "success") {
+            url: "https://www.yuanaiv.top/setting/qq_login/apply_code",
+            type: "GET",
+            success: function (resp) {
+                if (resp.result === "success") {
                     window.location.replace(resp.apply_code_url);
                 }
             }
@@ -233,10 +232,9 @@ class GameLogin {
         let outer = this;
         let username = this.$login_username.val();
         let password = this.$login_password.val();
-        let code=this.$login_code.val();
+        let code = this.$login_code.val();
         let num = outer.show_num.join("");
-        if(num!=code)
-        {
+        if (num != code) {
             outer.$login_error_message.html("验证码错误！");
             outer.show_num = [];
             outer.draw(outer.show_num);
@@ -252,7 +250,7 @@ class GameLogin {
                 username: username,
                 password: password,
             },
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();
                 } else {
@@ -266,7 +264,7 @@ class GameLogin {
         $.ajax({
             url: "https://www.yuanaiv.top/setting/logout/",
             type: "GET",
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();
                 }
@@ -277,10 +275,10 @@ class GameLogin {
 
     add_listening_events_register() {
         let outer = this;
-        this.$register_login.click(function() {
+        this.$register_login.click(function () {
             outer.login();
         });
-        this.$register_submit.click(function() {
+        this.$register_submit.click(function () {
             outer.register_on_remote();
         });
     }
@@ -300,7 +298,7 @@ class GameLogin {
                 password: password,
                 password_confirm: password_confirm,
             },
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();  // 刷新页面
                 } else {
@@ -322,10 +320,10 @@ class GameLogin {
     }
 
     hide() {
-        this.$login.hide();
+        this.$login.hide(500);
     }
 
     show() {
-        this.$login.show();
+        this.$login.show(500);
     }
 }

@@ -1,9 +1,9 @@
 class GameShop {
     constructor(root) {
         this.root = root;
-        this.money=this.root.$login.money;
-        this.tool=this.root.$login.tool;
-        this.tool=String(this.tool);
+        this.money = this.root.$login.money;
+        this.tool = this.root.$login.tool;
+        this.tool = String(this.tool);
         this.$shop = $(`
 <div class="game-shop">
     <div class="game-reward-title">
@@ -23,11 +23,11 @@ class GameShop {
 </div>
 `);
         this.hide();
-        
+
         this.root.$game.append(this.$shop);
 
         this.$turn_back = this.$shop.find('.game-turn-back');
-        this.$img_shoose =  this.$shop.find('.shoose');
+        this.$img_shoose = this.$shop.find('.shoose');
 
         this.start();
     }
@@ -38,19 +38,18 @@ class GameShop {
 
     add_listening_events() {
         let outer = this;
-        this.$turn_back.click(function() {
+        this.$turn_back.click(function () {
             outer.hide();
             outer.root.$menu.bgSound_hero.pause();
             outer.root.$menu.show();
         });
-        this.$img_shoose.click(function(){
-            if(outer.tool.indexOf("a")===-1&&outer.money>=300)
-            {
+        this.$img_shoose.click(function () {
+            if (outer.tool.indexOf("a") === -1 && outer.money >= 300) {
                 console.log(outer.money);
-                outer.root.$menu.gcs.buy(outer.root.$login.username,"shoose","a");
+                outer.root.$menu.gcs.buy(outer.root.$login.username, "shoose", "a");
                 alert("已购买：速度之靴");
             }
-            else if(outer.tool.indexOf("a")!=-1)
+            else if (outer.tool.indexOf("a") != -1)
                 alert("已拥有");
             else
                 alert("金币不足");
@@ -69,10 +68,10 @@ class GameShop {
         //         }
         //     }
         // });
-        this.$shop.show();
+        this.$shop.show(500);
     }
     hide() {
-        this.$shop.hide();
+        this.$shop.hide(500);
     }
 
 }

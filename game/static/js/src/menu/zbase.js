@@ -71,18 +71,18 @@ class GameMenu {
 `);
         this.$menu.hide();
 
-        this.chat_field=new ChatField(this);
+        this.chat_field = new ChatField(this);
         this.gcs = new ChatSocket(this);
         let outer = this;
         this.gcs.ws.onopen = function () {
             outer.gcs.send_init(outer.root.$login.username);
         }
-        
+
         this.root.$game.append(this.$menu);
-        this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
-        this.$reward=this.$menu.find('.game-menu-field-item-reward');
-        this.$shop=this.$menu.find('.game-menu-field-item-shop');
-        this.$setting=this.$menu.find('.game-menu-field-item-setting');
+        this.$startgame = this.$menu.find('.game-menu-field-item-startgame');
+        this.$reward = this.$menu.find('.game-menu-field-item-reward');
+        this.$shop = this.$menu.find('.game-menu-field-item-shop');
+        this.$setting = this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
@@ -94,50 +94,46 @@ class GameMenu {
         this.bgSound_godlike = document.getElementById("godlike");
         this.bgSound_domainting = document.getElementById("domainting");
         this.bgSound_win = document.getElementById("win");
-        
-        
+
+
         this.start();
     }
-    start()
-    {
+    start() {
         this.add_listening_events();
     }
-    add_listening_events()
-    {
-        let outer=this;
-        this.$startgame.click(function(){
-           outer.bgSound1.play();
+    add_listening_events() {
+        let outer = this;
+        this.$startgame.click(function () {
+            outer.bgSound1.play();
             outer.hide();
             outer.root.playground.show();
         });
 
-        this.$shop.click(function(){
+        this.$shop.click(function () {
             outer.hide();
             outer.root.$shop.show();
         });
 
-        this.$reward.click(function(){
+        this.$reward.click(function () {
             outer.hide();
             outer.root.$reward.show();
 
-           outer.bgSound1.pause();
-           outer.bgSound2.play();
+            outer.bgSound1.pause();
+            outer.bgSound2.play();
         });
 
-        this.$setting.click(function(){
+        this.$setting.click(function () {
             outer.hide();
             outer.bgSound_hero.play();
             outer.root.$setting.show();
         });
     }
 
-    show()
-    {
-        this.$menu.show();
+    show() {
+        this.$menu.show(500);
     }
 
-    hide()
-    {
-        this.$menu.hide();
+    hide() {
+        this.$menu.hide(500);
     }
 }

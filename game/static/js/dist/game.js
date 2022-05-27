@@ -4,7 +4,7 @@ class GameLogin {
         this.username = "";
         this.score = 0;
         this.money = 0;
-        this.tool=null;
+        this.tool = null;
         this.$login = $(`
 <div class="game-login">
     <div class="game-login-login">
@@ -90,7 +90,7 @@ class GameLogin {
         this.$login_register = this.$login.find(".game-login-option");
 
         this.$login_code = this.$login.find(".game-login-code input");
-        this.$login_canvas=this.$login.find(".game-login-code canvas");
+        this.$login_canvas = this.$login.find(".game-login-code canvas");
 
         this.$login_login.hide();
 
@@ -111,15 +111,15 @@ class GameLogin {
 
 
     draw(show_num) {
-        var canvas_width=100;
-        var canvas_height=35;
+        var canvas_width = 100;
+        var canvas_height = 35;
         var ctx = this.$login_canvas[0].getContext('2d');//获取到canvas画图的环境，演员表演的舞台
         ctx.canvas.width = canvas_width;
         ctx.canvas.height = canvas_height;
         var sCode = "a,b,c,d,e,f,g,h,i,j,k,m,n,p,q,r,s,t,u,v,w,x,y,z,A,B,C,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z,1,2,3,4,5,6,7,8,9,0";
         var aCode = sCode.split(",");
         var aLength = aCode.length;//获取到数组的长度
-        
+
         for (var i = 0; i < 4; i++) {  //这里的for循环可以控制验证码位数（如果想显示6位数，4改成6即可）
             var j = Math.floor(Math.random() * aLength);//获取到随机的索引值
             // var deg = Math.random() * 30 * Math.PI / 180;//产生0~30之间的随机弧度
@@ -169,21 +169,20 @@ class GameLogin {
         this.draw(this.show_num);
         this.getinfo();
         this.add_listening_events();
-}
+    }
 
-    getinfo()
-    {
+    getinfo() {
         let outer = this;
         $.ajax({
             url: "https://www.yuanaiv.top/setting/getinfo/",
             type: "GET",
-            async:false,
-            success: function(resp) {
+            async: false,
+            success: function (resp) {
                 if (resp.result === "success") {
                     outer.username = resp.username;
-                    outer.score=resp.score;
-                    outer.money=resp.money;
-                    outer.tool=resp.tool;
+                    outer.score = resp.score;
+                    outer.money = resp.money;
+                    outer.tool = resp.tool;
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
@@ -201,17 +200,17 @@ class GameLogin {
 
     add_listening_events_login() {
         let outer = this;
-        this.$qq_login.click(function(){
+        this.$qq_login.click(function () {
             outer.qq_login();
         });
-        this.$login_register.click(function() {
+        this.$login_register.click(function () {
             outer.$login_error_message.empty();
             outer.register();
         });
-        this.$login_submit.click(function() {
+        this.$login_submit.click(function () {
             outer.login_on_remote();
         });
-        this.$login_canvas.click(function() {
+        this.$login_canvas.click(function () {
             outer.show_num = [];
             outer.draw(outer.show_num);
         });
@@ -219,10 +218,10 @@ class GameLogin {
 
     qq_login() {
         $.ajax({
-            url : "https://www.yuanaiv.top/setting/qq_login/apply_code",
-            type : "GET",
-            success : function(resp) {
-                if(resp.result === "success") {
+            url: "https://www.yuanaiv.top/setting/qq_login/apply_code",
+            type: "GET",
+            success: function (resp) {
+                if (resp.result === "success") {
                     window.location.replace(resp.apply_code_url);
                 }
             }
@@ -233,10 +232,9 @@ class GameLogin {
         let outer = this;
         let username = this.$login_username.val();
         let password = this.$login_password.val();
-        let code=this.$login_code.val();
+        let code = this.$login_code.val();
         let num = outer.show_num.join("");
-        if(num!=code)
-        {
+        if (num != code) {
             outer.$login_error_message.html("验证码错误！");
             outer.show_num = [];
             outer.draw(outer.show_num);
@@ -252,7 +250,7 @@ class GameLogin {
                 username: username,
                 password: password,
             },
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();
                 } else {
@@ -266,7 +264,7 @@ class GameLogin {
         $.ajax({
             url: "https://www.yuanaiv.top/setting/logout/",
             type: "GET",
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();
                 }
@@ -277,10 +275,10 @@ class GameLogin {
 
     add_listening_events_register() {
         let outer = this;
-        this.$register_login.click(function() {
+        this.$register_login.click(function () {
             outer.login();
         });
-        this.$register_submit.click(function() {
+        this.$register_submit.click(function () {
             outer.register_on_remote();
         });
     }
@@ -300,7 +298,7 @@ class GameLogin {
                 password: password,
                 password_confirm: password_confirm,
             },
-            success: function(resp) {
+            success: function (resp) {
                 if (resp.result === "success") {
                     location.reload();  // 刷新页面
                 } else {
@@ -322,11 +320,11 @@ class GameLogin {
     }
 
     hide() {
-        this.$login.hide();
+        this.$login.hide(500);
     }
 
     show() {
-        this.$login.show();
+        this.$login.show(500);
     }
 }
 class ChatSocket {
@@ -580,18 +578,18 @@ class ChatSocket {
 `);
         this.$menu.hide();
 
-        this.chat_field=new ChatField(this);
+        this.chat_field = new ChatField(this);
         this.gcs = new ChatSocket(this);
         let outer = this;
         this.gcs.ws.onopen = function () {
             outer.gcs.send_init(outer.root.$login.username);
         }
-        
+
         this.root.$game.append(this.$menu);
-        this.$startgame=this.$menu.find('.game-menu-field-item-startgame');
-        this.$reward=this.$menu.find('.game-menu-field-item-reward');
-        this.$shop=this.$menu.find('.game-menu-field-item-shop');
-        this.$setting=this.$menu.find('.game-menu-field-item-setting');
+        this.$startgame = this.$menu.find('.game-menu-field-item-startgame');
+        this.$reward = this.$menu.find('.game-menu-field-item-reward');
+        this.$shop = this.$menu.find('.game-menu-field-item-shop');
+        this.$setting = this.$menu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
@@ -603,51 +601,47 @@ class ChatSocket {
         this.bgSound_godlike = document.getElementById("godlike");
         this.bgSound_domainting = document.getElementById("domainting");
         this.bgSound_win = document.getElementById("win");
-        
-        
+
+
         this.start();
     }
-    start()
-    {
+    start() {
         this.add_listening_events();
     }
-    add_listening_events()
-    {
-        let outer=this;
-        this.$startgame.click(function(){
-           outer.bgSound1.play();
+    add_listening_events() {
+        let outer = this;
+        this.$startgame.click(function () {
+            outer.bgSound1.play();
             outer.hide();
             outer.root.playground.show();
         });
 
-        this.$shop.click(function(){
+        this.$shop.click(function () {
             outer.hide();
             outer.root.$shop.show();
         });
 
-        this.$reward.click(function(){
+        this.$reward.click(function () {
             outer.hide();
             outer.root.$reward.show();
 
-           outer.bgSound1.pause();
-           outer.bgSound2.play();
+            outer.bgSound1.pause();
+            outer.bgSound2.play();
         });
 
-        this.$setting.click(function(){
+        this.$setting.click(function () {
             outer.hide();
             outer.bgSound_hero.play();
             outer.root.$setting.show();
         });
     }
 
-    show()
-    {
-        this.$menu.show();
+    show() {
+        this.$menu.show(500);
     }
 
-    hide()
-    {
-        this.$menu.hide();
+    hide() {
+        this.$menu.hide(500);
     }
 }
 let GAME_OBJECTS = [];
@@ -1012,17 +1006,16 @@ class Player extends GameObject {
 
         this.cur_skill = null;
 
-        this.shield=false;
+        this.shield = false;
         this.shield_pass_time = 0;
         this.cold_pass_time = 0;
-        this.tool=this.playground.root.$login.tool;
-        this.tool=String(this.tool);
-        if(this.tool.indexOf("a")!=-1)
-            this.speed+=0.03
-        if(this.is_me)
-        {
+        this.tool = this.playground.root.$login.tool;
+        this.tool = String(this.tool);
+        if (this.tool.indexOf("a") != -1)
+            this.speed += 0.03
+        if (this.is_me) {
             this.img = new Image();
-            this.skill_1_codetime=1;
+            this.skill_1_codetime = 1;
             this.img.src = this.playground.root.$setting.hero;
 
             this.fireball_img = new Image();
@@ -1031,59 +1024,51 @@ class Player extends GameObject {
 
             this.skill_2_codetime = 3;  // 单位：秒
             //默认英雄
-            if(this.img.src==="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500")
-            {
-                this.hero=0;
+            if (this.img.src === "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500") {
+                this.hero = 0;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
             }
 
             //英雄1
-            if(this.img.src==="https://yuanaiv.top/static/image/setting/1.jpg")
-            {
-                this.hero=1;
+            if (this.img.src === "https://yuanaiv.top/static/image/setting/1.jpg") {
+                this.hero = 1;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://img1.baidu.com/it/u=2948371691,2478431799&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=397";
             }
             //英雄2
-            if(this.img.src==="https://yuanaiv.top/static/image/setting/2.jpg")
-            {
-                this.hero=2;
+            if (this.img.src === "https://yuanaiv.top/static/image/setting/2.jpg") {
+                this.hero = 2;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFGuC8c9p03raAbhftNwlIiygWHBWkmmS4Iw&usqp=CAU";
             }
             //英雄3
-            if(this.img.src==="https://yuanaiv.top/static/image/setting/3.jpg")
-            {
-                this.hero=3;
+            if (this.img.src === "https://yuanaiv.top/static/image/setting/3.jpg") {
+                this.hero = 3;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRES0417NmPHd2BrpTLF12E91uASVYCivk-0Q&usqp=CAU";
             }
             //英雄4
-            if(this.img.src==="https://yuanaiv.top/static/image/setting/4.jpg")
-            {
-                this.hero=4;
+            if (this.img.src === "https://yuanaiv.top/static/image/setting/4.jpg") {
+                this.hero = 4;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://yuanaiv.top/static/image/setting/hero.jpg";
             }
             //英雄5
-            if(this.img.src==="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png")
-            {
-                this.hero=5;
+            if (this.img.src === "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png") {
+                this.hero = 5;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/Ezreal_RisingSpellForce.png";
             }
             //英雄6
-            if(this.img.src==="https://img.anfensi.com/upload/2019-3/201932790313858.png")
-            {
-                this.hero=6;
+            if (this.img.src === "https://img.anfensi.com/upload/2019-3/201932790313858.png") {
+                this.hero = 6;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/TeemoRCast.png";
             }
             //英雄7
-            if(this.img.src==="https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png")
-            {
-                this.hero=7;
+            if (this.img.src === "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png") {
+                this.hero = 7;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AurelionSolW.png";
             }
@@ -1091,24 +1076,23 @@ class Player extends GameObject {
     }
 
     start() {
-        
+
         if (this.is_me)
             this.add_listening_events();
-        else
-        {
-            let tx=Math.random() * this.playground.virtual_map_width;
-            let ty=Math.random() * this.playground.virtual_map_height;
-            this.move_to(tx,ty);
+        else {
+            let tx = Math.random() * this.playground.virtual_map_width;
+            let ty = Math.random() * this.playground.virtual_map_height;
+            this.move_to(tx, ty);
         }
     }
 
     add_listening_events() {
         let outer = this;
-        this.playground.game_map.$canvas.on("contextmenu", function() {
+        this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
 
-        this.playground.game_map.$canvas.mousedown(function(e) {
+        this.playground.game_map.$canvas.mousedown(function (e) {
 
             const rect = outer.ctx.canvas.getBoundingClientRect();
             let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
@@ -1129,14 +1113,13 @@ class Player extends GameObject {
         });
 
 
-        this.playground.game_map.$canvas.keydown(function(e){
+        this.playground.game_map.$canvas.keydown(function (e) {
             if (e.which === 81) {
-                if(outer.skill_1_codetime<=outer.eps)
-                {
-                    outer.cur_skill="fireball";
-                    outer.come_skill(outer.mouseX,outer.mouseY,"fireball");
+                if (outer.skill_1_codetime <= outer.eps) {
+                    outer.cur_skill = "fireball";
+                    outer.come_skill(outer.mouseX, outer.mouseY, "fireball");
                     outer.playground.root.$menu.bgSound3.play();
-                    outer.skill_1_codetime=2;
+                    outer.skill_1_codetime = 2;
                 }
             }
 
@@ -1148,48 +1131,45 @@ class Player extends GameObject {
 
 
             else if (e.which === 70) {
-                if(outer.skill_2_codetime<=outer.eps)
-                {
-                    if(outer.hero===0)
-                        outer.cur_skill="blink";
-                    else if(outer.hero===1)
-                        outer.cur_skill="cure";
-                    else if(outer.hero===2)
-                        outer.cur_skill="protect";
-                    else if(outer.hero===3)
-                        outer.cur_skill="iceball";
-                    else if (outer.hero===4)
-                        outer.cur_skill="manyfire";
-                    else if(outer.hero===5)
-                        outer.cur_skill="powershot";
-                    else if(outer.hero===6)
-                        outer.cur_skill="mogu";
-                    else if(outer.hero===7)
-                        outer.cur_skill="planet";
-                    outer.come_skill(outer.mouseX,outer.mouseY,outer.cur_skill);
+                if (outer.skill_2_codetime <= outer.eps) {
+                    if (outer.hero === 0)
+                        outer.cur_skill = "blink";
+                    else if (outer.hero === 1)
+                        outer.cur_skill = "cure";
+                    else if (outer.hero === 2)
+                        outer.cur_skill = "protect";
+                    else if (outer.hero === 3)
+                        outer.cur_skill = "iceball";
+                    else if (outer.hero === 4)
+                        outer.cur_skill = "manyfire";
+                    else if (outer.hero === 5)
+                        outer.cur_skill = "powershot";
+                    else if (outer.hero === 6)
+                        outer.cur_skill = "mogu";
+                    else if (outer.hero === 7)
+                        outer.cur_skill = "planet";
+                    outer.come_skill(outer.mouseX, outer.mouseY, outer.cur_skill);
                 }
             }
         });
     }
 
-    come_skill(tx,ty,skill)     //放技能函数
+    come_skill(tx, ty, skill)     //放技能函数
     {
-        if(skill==="fireball")
-        {
+        if (skill === "fireball") {
             let x = this.x, y = this.y;
             let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
-            if(this.is_me)
-                color="red";
-            let speed = this.speed*3;
+            if (this.is_me)
+                color = "red";
+            let speed = this.speed * 3;
             let move_length = 0.8;
             new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
         }
 
-        else if(skill === "blink")
-        {
+        else if (skill === "blink") {
             let d = this.get_dist(this.x, this.y, tx, ty);
             d = Math.min(d, 0.2);
             let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -1199,63 +1179,56 @@ class Player extends GameObject {
             this.move_length = 0;  // 闪现完停下来
         }
 
-        else if(skill==="cure")
-        {
-            if(this.radius<0.05&&this.is_me)
-            {   
-                this.speed/=1.2;
-                this.radius+=0.01;
+        else if (skill === "cure") {
+            if (this.radius < 0.05 && this.is_me) {
+                this.speed /= 1.2;
+                this.radius += 0.01;
                 this.skill_2_codetime = 3;
             }
         }
 
-        else if(skill==="protect")
-            this.shield=true;
-        
-        else if(skill==="iceball")
-        {
+        else if (skill === "protect")
+            this.shield = true;
+
+        else if (skill === "iceball") {
             let x = this.x, y = this.y;
             let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
-            let color="MediumSlateBlue";
-            let speed = this.speed*3;
+            let color = "MediumSlateBlue";
+            let speed = this.speed * 3;
             let move_length = 0.8;
             new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             this.skill_2_codetime = 3;
         }
 
-        else if(skill==="manyfire")
-        {
+        else if (skill === "manyfire") {
             let x = this.x, y = this.y;
             let radius = 0.01;
             let color = "red";
-            let speed = this.speed*3;
+            let speed = this.speed * 3;
             let move_length = 0.8;
             let angle = Math.atan2(ty - this.y, tx - this.x);
-            for(let i=0;i<3;i++)
-            {
-                let angle2=(angle+(i-1)*Math.PI/7);
+            for (let i = 0; i < 3; i++) {
+                let angle2 = (angle + (i - 1) * Math.PI / 7);
                 let vx = Math.cos(angle2), vy = Math.sin(angle2);
                 new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
             }
-            this.skill_2_codetime=3;
+            this.skill_2_codetime = 3;
         }
 
-        else if(skill==="powershot")
-        {
+        else if (skill === "powershot") {
             let x = this.x, y = this.y;
             let radius = 0.01;
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "SpringGreen";
-            let speed = this.speed*4;
+            let speed = this.speed * 4;
             let move_length = 1.6;
             new PowerShot(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
-            this.skill_2_codetime=3;
+            this.skill_2_codetime = 3;
         }
-        else if(skill==="mogu")
-        {
+        else if (skill === "mogu") {
             let x = this.x, y = this.y;
             let radius = 0.02;
             let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -1264,24 +1237,21 @@ class Player extends GameObject {
             let speed = 0;
             let move_length = 10;
             this.playground.skills.push(new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01));
-            this.skill_2_codetime=3;
+            this.skill_2_codetime = 3;
         }
-        else if(skill==="planet")
-        {
-            if (!this.planet_system_on)
-            {
+        else if (skill === "planet") {
+            if (!this.planet_system_on) {
                 let radius = 0.1;
                 let T = 2;
-                let start_rotius = this.radius * 5;
+                let start_rotius = 0.25;
                 let satellite_num = 3;
                 this.planet_system = new Planet(this.playground, this, this, radius, T, start_rotius, satellite_num, 0);
                 this.planet_system_on = 1;
             }
-            else 
-            {
+            else {
                 if (this.planet_system) this.planet_system.destroy();
             }
-            this.skill_2_codetime=3;
+            this.skill_2_codetime = 3;
         }
     }
 
@@ -1306,36 +1276,33 @@ class Player extends GameObject {
 
 
         this.spent_time += this.timedelta / 1000;
-        if(this.is_me)
+        if (this.is_me)
             this.update_coldtime();
 
-        if(!this.is_me&&this.spent_time>4&&Math.random()<1/300.0&&this.speed!=0){  //机器放技能
-            let player=this.playground.players[0];
-            let tx=player.x+player.speed*this.vx*this.timedelta/1000*0.3;
-            let ty=player.y+player.speed*this.vy*this.timedelta/1000*0.3;
-            this.come_skill(tx,ty,"fireball");
+        if (!this.is_me && this.spent_time > 4 && Math.random() < 1 / 300.0 && this.speed != 0) {  //机器放技能
+            let player = this.playground.players[0];
+            let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 0.3;
+            let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 0.3;
+            this.come_skill(tx, ty, "fireball");
         }
 
 
-        if(this.damage_speed > this.eps)
-        {
-            this.vx=this.vy=0;
-            this.move_length=0;
-            this.x+=this.damage_x*this.damage_speed*this.timedelta/1000;
-            this.y+=this.damage_y*this.damage_speed*this.timedelta/1000;
-            this.damage_speed*=this.friction;
+        if (this.damage_speed > this.eps) {
+            this.vx = this.vy = 0;
+            this.move_length = 0;
+            this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
+            this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
+            this.damage_speed *= this.friction;
         }
 
-        else
-        {
+        else {
             if (this.move_length < this.eps) {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
-                if(!this.is_me)
-                {
-                    let tx=Math.random() * this.playground.virtual_map_width;
-                    let ty=Math.random() * this.playground.virtual_map_height;
-                    this.move_to(tx,ty);
+                if (!this.is_me) {
+                    let tx = Math.random() * this.playground.virtual_map_width;
+                    let ty = Math.random() * this.playground.virtual_map_height;
+                    this.move_to(tx, ty);
                 }
             } else {
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
@@ -1347,8 +1314,7 @@ class Player extends GameObject {
         this.render();
     }
 
-    update_coldtime()
-    {
+    update_coldtime() {
         this.skill_1_codetime -= this.timedelta / 1000;
         this.skill_1_codetime = Math.max(this.skill_1_codetime, 0);
 
@@ -1361,20 +1327,16 @@ class Player extends GameObject {
         let scale = this.playground.scale;
         let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
 
-        if(this.speed===0)
-        {
-            if(this.cold_pass_time <= 2)
+        if (this.speed === 0) {
+            if (this.cold_pass_time <= 2)
                 this.cold_pass_time += this.timedelta / 1000;
-            else 
-            {
-                this.speed=this.temp;
+            else {
+                this.speed = this.temp;
                 this.cold_pass_time = 0
             }
         }
-        if(this.is_me)
-        {
-            if (this.shield && this.shield_pass_time <= 2) 
-            {
+        if (this.is_me) {
+            if (this.shield && this.shield_pass_time <= 2) {
                 this.shield_pass_time += this.timedelta / 1000;
 
                 let scale = this.playground.scale;
@@ -1391,15 +1353,15 @@ class Player extends GameObject {
                 this.ctx.fillStyle = 'silver';
                 this.ctx.fill();
             }
-        else if (this.shield) {
-            this.shield = false;
-            this.skill_2_codetime=3;
-            this.shield_pass_time = 0;
-        }
-        else if (this.planet_system_on) {
-            this.planet_system_on = false;
-            this.skill_2_codetime=3;
-        }
+            else if (this.shield) {
+                this.shield = false;
+                this.skill_2_codetime = 3;
+                this.shield_pass_time = 0;
+            }
+            else if (this.planet_system_on) {
+                this.planet_system_on = false;
+                this.skill_2_codetime = 3;
+            }
             this.ctx.save();
             this.ctx.strokeStyle = this.color;
             this.ctx.beginPath();
@@ -1411,147 +1373,135 @@ class Player extends GameObject {
             this.render_skill_coldtime();
         }
 
-        else
-        {
+        else {
             this.ctx.beginPath();
             this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
-        
+
         }
     }
 
     render_skill_coldtime() {
 
         let scale = this.playground.scale;
-        let x = this.playground.width/scale-0.2, y = 0.9, r = 0.04;
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.arc(x* scale, y* scale, r* scale, 0, Math.PI * 2, false);
-        this.ctx.stroke();
-        this.ctx.clip();
-        this.ctx.drawImage(this.fireball_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
-        this.ctx.restore();
-
-        if (this.skill_1_codetime > 0) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(x * scale, y* scale);
-            this.ctx.arc(x * scale, y* scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime/2) - Math.PI / 2, true);
-            this.ctx.lineTo(x * scale, y * scale);
-            this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
-            this.ctx.fill();
-        }
-
-        x = this.playground.width/scale-0.1, y = 0.9, r = 0.04;
+        let x = this.playground.width / scale - 0.2, y = 0.9, r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.skill_2_img, (x - r)* scale, (y - r)* scale, r * 2* scale, r * 2* scale);
+        this.ctx.drawImage(this.fireball_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        this.ctx.restore();
+
+        if (this.skill_1_codetime > 0) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_1_codetime / 2) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
+            this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
+            this.ctx.fill();
+        }
+
+        x = this.playground.width / scale - 0.1, y = 0.9, r = 0.04;
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.skill_2_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
         this.ctx.restore();
 
         if (this.skill_2_codetime > 0) {
             this.ctx.beginPath();
             this.ctx.moveTo(x * scale, y * scale);
-            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime/3) - Math.PI / 2, true);
-            this.ctx.lineTo(x* scale, y* scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.skill_2_codetime / 3) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
     }
 
 
-    is_attacked(skill,angle,damage)
-    {
-        if(this.shield) return;
+    is_attacked(skill, angle, damage) {
+        if (this.shield) return;
 
-        if(skill==="fireball")
-        {
-            for(let i=0;i<20+Math.random()*10;i++){
-                let x=this.x,y=this.y;
-                let radius=this.radius*Math.random()*0.1;
-                let angle=Math.PI*2*Math.random();
-                let vx=Math.cos(angle),vy=Math.sin(angle);
-                let color=this.color;
-                let speed=this.speed*10;
-                let move_length=this.radius*Math.random()*3;
-                new Particle(this.playground,x,y,radius,vx,vy,color,speed,move_length);
+        if (skill === "fireball") {
+            for (let i = 0; i < 20 + Math.random() * 10; i++) {
+                let x = this.x, y = this.y;
+                let radius = this.radius * Math.random() * 0.1;
+                let angle = Math.PI * 2 * Math.random();
+                let vx = Math.cos(angle), vy = Math.sin(angle);
+                let color = this.color;
+                let speed = this.speed * 10;
+                let move_length = this.radius * Math.random() * 3;
+                new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
             }
-    
-            this.radius-=damage;
-            this.speed*=1.2;
-    
-    
-            if(this.radius<this.eps)
-            {
-                if(this.is_me===true)
-                {
+
+            this.radius -= damage;
+            this.speed *= 1.2;
+
+
+            if (this.radius < this.eps) {
+                if (this.is_me === true) {
                     this.playground.root.$menu.bgSound_lose.play();
-                    this.playground.live_count=10;
+                    this.playground.live_count = 10;
                     this.playground.score_board.lose();
                 }
-                else
-                {
+                else {
                     this.playground.live_count--;
-                    if(this.playground.live_count===4)
+                    if (this.playground.live_count === 4)
                         this.playground.root.$menu.bgSound_unstop.play();
-                    if(this.playground.live_count===3)
+                    if (this.playground.live_count === 3)
                         this.playground.root.$menu.bgSound_domainting.play();
-                    if(this.playground.live_count===2)
+                    if (this.playground.live_count === 2)
                         this.playground.root.$menu.bgSound_godlike.play();
-                    if(this.playground.live_count===1)
+                    if (this.playground.live_count === 1)
                         this.playground.root.$menu.bgSound_lendy.play();
                 }
-                if(this.playground.live_count === 0)
-                {
+                if (this.playground.live_count === 0) {
                     this.playground.root.$menu.bgSound_win.play();
-                    this.playground.live_count=10;
+                    this.playground.live_count = 10;
                     this.playground.score_board.win();
                 }
                 this.destroy();
                 return false;
             }
-            this.damage_x=Math.cos(angle);
-            this.damage_y=Math.sin(angle);
-            this.damage_speed=damage*80;
+            this.damage_x = Math.cos(angle);
+            this.damage_y = Math.sin(angle);
+            this.damage_speed = damage * 80;
         }
-        else if(skill==="iceball")
-        {
-            this.radius-=damage;
-    
-            if(this.radius<this.eps)
-            {
+        else if (skill === "iceball") {
+            this.radius -= damage;
+
+            if (this.radius < this.eps) {
                 this.playground.live_count--;
-                if(this.playground.live_count===4)
+                if (this.playground.live_count === 4)
                     this.playground.root.$menu.bgSound_unstop.play();
-                if(this.playground.live_count===3)
+                if (this.playground.live_count === 3)
                     this.playground.root.$menu.bgSound_domainting.play();
-                if(this.playground.live_count===2)
+                if (this.playground.live_count === 2)
                     this.playground.root.$menu.bgSound_godlike.play();
-                if(this.playground.live_count===1)
+                if (this.playground.live_count === 1)
                     this.playground.root.$menu.bgSound_lendy.play();
-                if(this.playground.live_count === 0)
-                {
+                if (this.playground.live_count === 0) {
                     this.playground.root.$menu.bgSound_win.play();
                     this.playground.score_board.win();
-                    this.playground.live_count=10;
+                    this.playground.live_count = 10;
                 }
                 this.destroy();
                 return false;
             }
-            this.temp =this.speed;
-            this.speed=0;
+            this.temp = this.speed;
+            this.speed = 0;
         }
 
     }
 
-    on_destroy()
-    {   
-        for(let i=0;i<this.playground.players.length;i++){
-            if(this.playground.players[i]===this)
-            {
-                this.playground.players.splice(i,1);
+    on_destroy() {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            if (this.playground.players[i] === this) {
+                this.playground.players.splice(i, 1);
             }
         }
     }
@@ -1905,24 +1855,14 @@ class PowerShot extends GameObject {
         }
         this.update_move();
 
-        for(let i=0;i<this.playground.players.length;i++)
-        {
-            let player=this.playground.players[i];
-            if(this.player!==player&&this.is_collision(player))
-            {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
             }
         }
 
-        for(let i=0;i<this.playground.towers.length;i++)
-        {
-            let tower=this.playground.towers[i];
-            if(this.player!==tower&&this.is_collision(tower))
-            {
-                this.attack(tower);
-            }
-        }
-        
+
         this.render();
     }
 
@@ -1934,7 +1874,7 @@ class PowerShot extends GameObject {
     }
 
     update_attack() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) {
+        for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
@@ -1958,7 +1898,7 @@ class PowerShot extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("fireball",angle, this.damage);
+        player.is_attacked("fireball", angle, this.damage);
     }
 
     render() {
@@ -1976,10 +1916,8 @@ class PowerShot extends GameObject {
         this.ctx.fill();
     }
 }
-class Satellite extends GameObject
-{
-  constructor(playground, player, radius, T, rotius, start_angle)
-  {
+class Satellite extends GameObject {
+  constructor(playground, player, radius, T, rotius, start_angle) {
     super();
     this.playground = playground;
     this.ctx = this.playground.game_map.ctx;
@@ -1994,62 +1932,54 @@ class Satellite extends GameObject
     this.color = "white";
 
     this.start();
-  } 
-  
-  start()
-  {
+  }
+
+  start() {
     this.vx = 1;
     this.vy = 0;
     this.x = this.player.x + this.rotius;
     this.y = this.player.y;
   }
-    get_dist(x1, y1, x2, y2) {
-      let dx = x1 - x2;
-      let dy = y1 - y2;
-      return Math.sqrt(dx * dx + dy * dy);
+  get_dist(x1, y1, x2, y2) {
+    let dx = x1 - x2;
+    let dy = y1 - y2;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   is_collision(player) {
     let distance = this.get_dist(this.x, this.y, player.x, player.y);
     if (distance < this.radius + player.radius)
-        return true;
+      return true;
     return false;
-}
+  }
 
-attack(player) {
+  attack(player) {
     let angle = Math.atan2(player.y - this.y, player.x - this.x);
-    player.is_attacked("fireball",angle, this.damage);
-    console.log("e");
-    this.destroy();
-}
+    player.is_attacked("fireball", angle, this.damage);
+  }
 
 
-  update()
-  {
+  update() {
     this.update_move();
     this.update_rotate();
 
-    for(let i=0;i<this.playground.players.length;i++)
-        {
-            let player=this.playground.players[i];
-            if(this.player!==player&&this.is_collision(player))
-            {
-                this.attack(player);
-            }
-        }
-    
+    for (let i = 0; i < this.playground.players.length; i++) {
+      let player = this.playground.players[i];
+      if (this.player !== player && this.is_collision(player)) {
+        this.attack(player);
+      }
+    }
+
     this.render();
   }
 
 
-  update_rotate()
-  {
+  update_rotate() {
     let angle = this.omega * this.timedelta / 1000;
     this.angle += angle;
   }
 
-  update_move()
-  {
+  update_move() {
     let dx = this.rotius * Math.cos(this.angle);
     let dy = this.rotius * Math.sin(this.angle);
     this.x = this.player.x + dx;
@@ -2057,18 +1987,16 @@ attack(player) {
   }
 
 
-  render()
-  {
-    if (this.pass_time <= 2) 
-    {
-        this.pass_time += this.timedelta / 1000;
-        let scale = this.playground.scale;
-        this.ctx_x = this.x - this.playground.cx;
-        this.ctx_y = this.y - this.playground.cy;
-        this.ctx.beginPath();
-        this.ctx.arc(this.ctx_x * scale, this.ctx_y * scale, this.radius * scale, 0, Math.PI * 2);
-        this.ctx.fillStyle = this.color;
-        this.ctx.fill();
+  render() {
+    if (this.pass_time <= 2) {
+      this.pass_time += this.timedelta / 1000;
+      let scale = this.playground.scale;
+      this.ctx_x = this.x - this.playground.cx;
+      this.ctx_y = this.y - this.playground.cy;
+      this.ctx.beginPath();
+      this.ctx.arc(this.ctx_x * scale, this.ctx_y * scale, this.radius * scale, 0, Math.PI * 2);
+      this.ctx.fillStyle = this.color;
+      this.ctx.fill();
     }
     else
       this.destroy();
@@ -2182,20 +2110,20 @@ class Tower extends GameObject {
 class GamePlayground {
     constructor(root) {
         this.root = root;
-        this.live_count=10;
-        this.tower_count=4;
+        this.live_count = 10;
+        this.tower_count = 4;
         this.$playground = $(`<div class="game-playground"></div>`);
-        
+
         this.root.$game.append(this.$playground);
 
         this.bgSound1 = document.getElementById("shoot_ball");
-        this.skills=[];
+        this.skills = [];
         this.hide();
-        this.focus_player=null;
+        this.focus_player = null;
         this.start();
     }
 
-    get_random_color(){
+    get_random_color() {
         var hex = Math.floor(Math.random() * 16777216).toString(16); //生成ffffff以内16进制数
         while (hex.length < 6)  //while循环判断hex位数，少于6位前面加0凑够6位
             hex = '0' + hex;
@@ -2213,8 +2141,7 @@ class GamePlayground {
 
 
 
-    start() 
-    {
+    start() {
         let outer = this;
         let uuid = this.create_uuid();
         $(window).on(`resize.${uuid}`, function () {
@@ -2224,13 +2151,13 @@ class GamePlayground {
 
     resize() {
 
-        this.scale = this.height;        
+        this.scale = this.height;
         if (this.game_map) this.game_map.resize();
     }
 
     re_calculate_cx_cy(x, y) {
         this.cx = x - 0.5 * this.width / this.scale;
-        this.cy = y - 0.5 * this.height/ this.scale;
+        this.cy = y - 0.5 * this.height / this.scale;
 
         let l = this.game_map.l;
         if (this.focus_player) {
@@ -2242,46 +2169,44 @@ class GamePlayground {
     }
 
 
-    show()
-    {
-        this.$playground.show();
-        
-        this.width=this.$playground.width();
-        this.height=this.$playground.height();
+    show() {
+        this.$playground.show(500);
+
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
 
         this.virtual_map_width = 3;
-        this.virtual_map_height = this.virtual_map_width; 
-        
-        this.game_map=new GameMap(this);
+        this.virtual_map_height = this.virtual_map_width;
+
+        this.game_map = new GameMap(this);
         this.resize();
-        this.players=[];
-        this.towers=[];
-        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5,0.05,"white",0.15,true));
-        for(let i=0;i<10;i++)
-            this.players.push(new Player(this,this.width / 2 / this.scale, 1.5,0.05,this.get_random_color(),0.15,false));
-        
-        this.towers.push(new Tower(this, 0.5, 0.5,0.1,"white"));
-        this.towers.push(new Tower(this, 1.5, 1.5,0.1,"white"));
-        this.towers.push(new Tower(this, 2.5, 2, 0.1,"white"));
-        this.towers.push(new Tower(this, 0.7, 2.5, 0.1,"white"));
-        
-        this.score_board=new ScoreBoard(this);
-        this.notice_board=new NoticeBoard(this);
-        
+        this.players = [];
+        this.towers = [];
+        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, true));
+        for (let i = 0; i < 10; i++)
+            this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, false));
+
+        this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
+        this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
+        this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
+        this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+
+        this.score_board = new ScoreBoard(this);
+        this.notice_board = new NoticeBoard(this);
+
         // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
         this.focus_player = this.players[0];
 
-        
+
     }
-    hide()
-    {
-        while (this.players && this.players.length > 0) 
+    hide() {
+        while (this.players && this.players.length > 0)
             this.players[0].destroy();
 
-        while (this.towers && this.towers.length > 0) 
+        while (this.towers && this.towers.length > 0)
             this.towers[0].destroy();
 
-        while (this.skills && this.skills.length > 0) 
+        while (this.skills && this.skills.length > 0)
             this.skills[0].destroy();
 
         if (this.game_map) {
@@ -2296,7 +2221,7 @@ class GamePlayground {
 
         this.$playground.empty();
 
-        this.$playground.hide();
+        this.$playground.hide(500);
     }
 
 }
@@ -2325,8 +2250,6 @@ class GameReward {
         this.hide();
         this.root.$game.append(this.$reward);
         this.$turn_back = this.$reward.find('.game-turn-back');
-        // this.$reward=this.$menu.find('.game-menu-field-item-reward');
-        // this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.start();
     }
@@ -2336,29 +2259,27 @@ class GameReward {
 
     add_listening_events() {
         let outer = this;
-        this.$turn_back.click(function() {
+        this.$turn_back.click(function () {
             outer.root.$menu.bgSound2.pause();
             outer.hide();
             outer.root.$menu.show();
         });
     }
 
-    show()
-    {
-        this.$reward.show();
+    show() {
+        this.$reward.show(500);
     }
 
-    hide()
-    {
-        this.$reward.hide();
+    hide() {
+        this.$reward.hide(500);
     }
 }
 class GameSetting {
     constructor(root) {
         this.root = root;
-        this.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
-        this.score=this.root.$login.score;
-        this.money=this.root.$login.money;
+        this.hero = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
+        this.score = this.root.$login.score;
+        this.money = this.root.$login.money;
         this.$setting = $(`
 <div class="game-setting">
     <audio id="hero6">
@@ -2411,20 +2332,20 @@ class GameSetting {
 </div>
 `);
         this.hide();
-        
+
         this.root.$game.append(this.$setting);
 
         this.$game_logout = this.$setting.find('.game-setting-logout');
         this.$game_origin = this.$setting.find('.game-setting-origin');
         this.$turn_back = this.$setting.find('.game-turn-back');
         this.$score = this.$setting.find('.game-setting-score');
-        this.$img_1 =  this.$setting.find('.img-1');
-        this.$img_2 =  this.$setting.find('.img-2');
-        this.$img_3 =  this.$setting.find('.img-3');
-        this.$img_4 =  this.$setting.find('.img-4');
-        this.$img_5 =  this.$setting.find('.img-5');
-        this.$img_6 =  this.$setting.find('.img-6');
-        this.$img_7 =  this.$setting.find('.img-7');
+        this.$img_1 = this.$setting.find('.img-1');
+        this.$img_2 = this.$setting.find('.img-2');
+        this.$img_3 = this.$setting.find('.img-3');
+        this.$img_4 = this.$setting.find('.img-4');
+        this.$img_5 = this.$setting.find('.img-5');
+        this.$img_6 = this.$setting.find('.img-6');
+        this.$img_7 = this.$setting.find('.img-7');
         this.bgSound_hero5 = document.getElementById("hero5");
         this.bgSound_hero6 = document.getElementById("hero6");
 
@@ -2437,45 +2358,45 @@ class GameSetting {
 
     add_listening_events() {
         let outer = this;
-        this.$game_logout.click(function() {
+        this.$game_logout.click(function () {
             outer.hide();
             outer.root.$login.logout_on_remote();
         });
-        this.$turn_back.click(function() {
+        this.$turn_back.click(function () {
             outer.hide();
             outer.root.$menu.bgSound_hero.pause();
             outer.root.$menu.show();
         });
-        this.$img_1.click(function(){
-            outer.hero="../../static/image/setting/1.jpg";
+        this.$img_1.click(function () {
+            outer.hero = "../../static/image/setting/1.jpg";
             alert("已选择：hero1");
         });
-        this.$img_2.click(function(){
-            outer.hero="../../static/image/setting/2.jpg";
+        this.$img_2.click(function () {
+            outer.hero = "../../static/image/setting/2.jpg";
             alert("已选择：hero2");
         });
-        this.$img_3.click(function(){
-            outer.hero="../../static/image/setting/3.jpg";
+        this.$img_3.click(function () {
+            outer.hero = "../../static/image/setting/3.jpg";
             alert("已选择：hero3");
         });
-        this.$img_4.click(function(){
-            outer.hero="../../static/image/setting/4.jpg";
+        this.$img_4.click(function () {
+            outer.hero = "../../static/image/setting/4.jpg";
             alert("已选择：hero4");
         });
-        this.$img_5.click(function(){
-            outer.hero="https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
+        this.$img_5.click(function () {
+            outer.hero = "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
             outer.bgSound_hero5.play();
         });
-        this.$img_6.click(function(){
-            outer.hero="https://img.anfensi.com/upload/2019-3/201932790313858.png";
+        this.$img_6.click(function () {
+            outer.hero = "https://img.anfensi.com/upload/2019-3/201932790313858.png";
             outer.bgSound_hero6.play();
         });
-        this.$img_7.click(function(){
-            outer.hero="https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
+        this.$img_7.click(function () {
+            outer.hero = "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
             alert("已选择：hero7");
         });
-        this.$game_origin.click(function(){
-            outer.hero="https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
+        this.$game_origin.click(function () {
+            outer.hero = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
             alert("已选择：默认英雄");
         });
     }
@@ -2485,26 +2406,26 @@ class GameSetting {
         $.ajax({
             url: "https://www.yuanaiv.top/setting/getinfo/",
             type: "GET",
-            async:false,
-            success: function(resp) {
+            async: false,
+            success: function (resp) {
                 if (resp.result === "success") {
-                    outer.score=resp.score;
+                    outer.score = resp.score;
                 }
             }
         });
-        this.$setting.show();
+        this.$setting.show(500);
     }
     hide() {
-        this.$setting.hide();
+        this.$setting.hide(500);
     }
 
 }
 class GameShop {
     constructor(root) {
         this.root = root;
-        this.money=this.root.$login.money;
-        this.tool=this.root.$login.tool;
-        this.tool=String(this.tool);
+        this.money = this.root.$login.money;
+        this.tool = this.root.$login.tool;
+        this.tool = String(this.tool);
         this.$shop = $(`
 <div class="game-shop">
     <div class="game-reward-title">
@@ -2524,11 +2445,11 @@ class GameShop {
 </div>
 `);
         this.hide();
-        
+
         this.root.$game.append(this.$shop);
 
         this.$turn_back = this.$shop.find('.game-turn-back');
-        this.$img_shoose =  this.$shop.find('.shoose');
+        this.$img_shoose = this.$shop.find('.shoose');
 
         this.start();
     }
@@ -2539,19 +2460,18 @@ class GameShop {
 
     add_listening_events() {
         let outer = this;
-        this.$turn_back.click(function() {
+        this.$turn_back.click(function () {
             outer.hide();
             outer.root.$menu.bgSound_hero.pause();
             outer.root.$menu.show();
         });
-        this.$img_shoose.click(function(){
-            if(outer.tool.indexOf("a")===-1&&outer.money>=300)
-            {
+        this.$img_shoose.click(function () {
+            if (outer.tool.indexOf("a") === -1 && outer.money >= 300) {
                 console.log(outer.money);
-                outer.root.$menu.gcs.buy(outer.root.$login.username,"shoose","a");
+                outer.root.$menu.gcs.buy(outer.root.$login.username, "shoose", "a");
                 alert("已购买：速度之靴");
             }
-            else if(outer.tool.indexOf("a")!=-1)
+            else if (outer.tool.indexOf("a") != -1)
                 alert("已拥有");
             else
                 alert("金币不足");
@@ -2570,10 +2490,10 @@ class GameShop {
         //         }
         //     }
         // });
-        this.$shop.show();
+        this.$shop.show(500);
     }
     hide() {
-        this.$shop.hide();
+        this.$shop.hide(500);
     }
 
 }

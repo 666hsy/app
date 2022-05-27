@@ -23,8 +23,6 @@ class GameReward {
         this.hide();
         this.root.$game.append(this.$reward);
         this.$turn_back = this.$reward.find('.game-turn-back');
-        // this.$reward=this.$menu.find('.game-menu-field-item-reward');
-        // this.$setting=this.$menu.find('.game-menu-field-item-setting');
 
         this.start();
     }
@@ -34,20 +32,18 @@ class GameReward {
 
     add_listening_events() {
         let outer = this;
-        this.$turn_back.click(function() {
+        this.$turn_back.click(function () {
             outer.root.$menu.bgSound2.pause();
             outer.hide();
             outer.root.$menu.show();
         });
     }
 
-    show()
-    {
-        this.$reward.show();
+    show() {
+        this.$reward.show(500);
     }
 
-    hide()
-    {
-        this.$reward.hide();
+    hide() {
+        this.$reward.hide(500);
     }
 }
