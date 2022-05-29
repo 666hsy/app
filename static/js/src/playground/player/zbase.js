@@ -46,28 +46,28 @@ class Player extends GameObject {
             }
 
             //英雄1
-            if (this.img.src === "https://yuanaiv.top/static/image/setting/1.jpg") {
+            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/1.jpg") {
                 this.hero = 1;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://img1.baidu.com/it/u=2948371691,2478431799&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=397";
             }
             //英雄2
-            if (this.img.src === "https://yuanaiv.top/static/image/setting/2.jpg") {
+            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/2.jpg") {
                 this.hero = 2;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFGuC8c9p03raAbhftNwlIiygWHBWkmmS4Iw&usqp=CAU";
             }
             //英雄3
-            if (this.img.src === "https://yuanaiv.top/static/image/setting/3.jpg") {
+            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/3.jpg") {
                 this.hero = 3;
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRES0417NmPHd2BrpTLF12E91uASVYCivk-0Q&usqp=CAU";
             }
             //英雄4
-            if (this.img.src === "https://yuanaiv.top/static/image/setting/4.jpg") {
+            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/4.jpg") {
                 this.hero = 4;
                 this.skill_2_img = new Image();
-                this.skill_2_img.src = "https://yuanaiv.top/static/image/setting/hero.jpg";
+                this.skill_2_img.src = "https://www.yuanaiv.top/static/image/setting/hero.jpg";
             }
             //英雄5
             if (this.img.src === "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png") {

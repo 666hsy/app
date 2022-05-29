@@ -41,15 +41,6 @@ class GameSetting {
             恢复默认
         </div>
     </div>
-    <div class='game-setting-username'>
-        玩家:${this.root.$login.username}
-    </div>
-    <div class='game-setting-score'>
-        天梯分:${this.score}
-    </div>
-    <div class='game-setting-logout'>
-        退出登录
-    </div>
     <div class='game-turn-back'>
         返回
     </div>
@@ -126,20 +117,12 @@ class GameSetting {
     }
 
     show() {
-        let outer = this;
-        $.ajax({
-            url: "https://www.yuanaiv.top/setting/getinfo/",
-            type: "GET",
-            async: false,
-            success: function (resp) {
-                if (resp.result === "success") {
-                    outer.score = resp.score;
-                }
-            }
-        });
+        this.setting_board = new SettingBoard(this);
         this.$setting.show(500);
     }
     hide() {
+        if (this.setting_board)
+            this.setting_board.hide();
         this.$setting.hide(500);
     }
 

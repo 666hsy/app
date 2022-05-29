@@ -2,7 +2,7 @@ class ScoreBoard extends GameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.flag=false;
+        this.flag = false;
         this.ctx = this.playground.game_map.ctx;
 
         this.state = null;  // win: 胜利，lose：失败
@@ -22,7 +22,7 @@ class ScoreBoard extends GameObject {
         let outer = this;
         let $canvas = this.playground.game_map.$canvas;
 
-        $canvas.on('click', function() {
+        $canvas.on('click', function () {
             outer.playground.hide();
             outer.playground.root.$menu.bgSound1.pause();
             outer.playground.root.$menu.show();
@@ -33,10 +33,12 @@ class ScoreBoard extends GameObject {
         this.state = "win";
 
         let outer = this;
+        this.playground.root.$login.score += 10;
+        this.playground.root.$login.money += 30;
         outer.playground.root.$menu.gcs.add_score(outer.playground.root.$menu.root.$login.username);
-        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,30);
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username, 30);
 
-        setTimeout(function() {
+        setTimeout(function () {
             outer.add_listening_events();
         }, 1000);
     }
@@ -45,9 +47,11 @@ class ScoreBoard extends GameObject {
         this.state = "lose";
 
         let outer = this;
+        this.playground.root.$login.score -= 5;
+        this.playground.root.$login.money += 10;
         outer.playground.root.$menu.gcs.reduce_score(outer.playground.root.$menu.root.$login.username);
-        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username,10);
-        setTimeout(function() {
+        outer.playground.root.$menu.gcs.add_money(outer.playground.root.$menu.root.$login.username, 10);
+        setTimeout(function () {
             outer.add_listening_events();
         }, 1000);
     }
