@@ -1,8 +1,8 @@
-class GameMenu {
+class TwoGameMenu {
     constructor(root) {
         this.root = root;
-        this.$menu = $(`
-<div class="game-menu">
+        this.$twomenu = $(`
+<div class="game-twomenu">
     <audio id="bgMusic">
         <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201604/7170.mp3" type="audio/mpeg">
     </audio>
@@ -43,46 +43,28 @@ class GameMenu {
         <source src="https://downsc.chinaz.net/files/download/sound1/201406/4539.mp3" type="audio/mpeg">
     </audio>
 
-    <div class="game-rule">
-        鼠标右键移动<br>
-        Q：1技能<br>
-        F：2技能<br>
-        按F11启用全屏
-    </div>
-
-    <div class="game-menu-field">
+    <div class="game-twomenu-field">
         <div class="game-menu-field-item game-menu-field-item-startgame">
-            开始游戏
+            单人模式
         </div>
         <br>
         <div class="game-menu-field-item game-menu-field-item-shop">
-            商城
+            多人模式
         </div>
         <br>
         <div class="game-menu-field-item game-menu-field-item-setting">
-            设置
-        </div>
-        <br>
-        <div class="game-menu-field-item game-menu-field-item-reward">
-            打赏
+            返回
         </div>
     </div>
 </div>
 `);
-        this.$menu.hide();
+        this.$twomenu.hide();
 
-        this.chat_field = new ChatField(this);
-        this.gcs = new ChatSocket(this);
-        let outer = this;
-        this.gcs.ws.onopen = function () {
-            outer.gcs.send_init(outer.root.$login.username);
-        }
 
-        this.root.$game.append(this.$menu);
-        this.$startgame = this.$menu.find('.game-menu-field-item-startgame');
-        this.$reward = this.$menu.find('.game-menu-field-item-reward');
-        this.$shop = this.$menu.find('.game-menu-field-item-shop');
-        this.$setting = this.$menu.find('.game-menu-field-item-setting');
+        this.root.$game.append(this.$twomenu);
+        this.$single = this.$twomenu.find('.game-menu-field-item-startgame');
+        this.$multi = this.$twomenu.find('.game-menu-field-item-shop');
+        this.$back = this.$twomenu.find('.game-menu-field-item-setting');
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
@@ -103,36 +85,29 @@ class GameMenu {
     }
     add_listening_events() {
         let outer = this;
-        this.$startgame.click(function () {
+        this.$single.click(function () {
+            outer.bgSound1.play();
             outer.hide();
-            outer.root.$twomenu.show();
+            outer.root.playground.show("single mode");
         });
 
-        this.$shop.click(function () {
+        this.$multi.click(function () {
+            outer.bgSound1.play();
             outer.hide();
-            outer.root.$shop.show();
+            outer.root.playground.show("multi mode");
         });
 
-        this.$reward.click(function () {
+        this.$back.click(function () {
             outer.hide();
-            outer.root.$reward.show();
-
-            outer.bgSound1.pause();
-            outer.bgSound2.play();
-        });
-
-        this.$setting.click(function () {
-            outer.hide();
-            outer.bgSound_hero.play();
-            outer.root.$setting.show();
+            outer.root.$menu.show();
         });
     }
 
     show() {
-        this.$menu.show(500);
+        this.$twomenu.show(500);
     }
 
     hide() {
-        this.$menu.hide(500);
+        this.$twomenu.hide(500);
     }
 }

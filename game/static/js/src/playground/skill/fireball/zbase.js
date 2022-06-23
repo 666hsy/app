@@ -26,20 +26,16 @@ class FireBall extends GameObject {
         }
         this.update_move();
 
-        for(let i=0;i<this.playground.players.length;i++)
-        {
-            let player=this.playground.players[i];
-            if(this.player!==player&&this.is_collision(player))
-            {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
             }
         }
 
-        for(let i=0;i<this.playground.towers.length;i++)
-        {
-            let tower=this.playground.towers[i];
-            if(this.player!==tower&&this.is_collision(tower))
-            {
+        for (let i = 0; i < this.playground.towers.length; i++) {
+            let tower = this.playground.towers[i];
+            if (this.player !== tower && this.is_collision(tower)) {
                 this.attack(tower);
             }
         }
@@ -55,7 +51,7 @@ class FireBall extends GameObject {
     }
 
     update_attack() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) {
+        for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
@@ -79,7 +75,7 @@ class FireBall extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("fireball",angle, this.damage);
+        player.is_attacked("fireball", angle, this.damage);
         this.destroy();
     }
 
@@ -97,5 +93,12 @@ class FireBall extends GameObject {
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
+    }
+    on_destroy() {
+        for (let i = 0; i < this.playground.skills.length; i++) {
+            if (this.playground.skills[i] === this) {
+                this.playground.skills.splice(i, 1);
+            }
+        }
     }
 }

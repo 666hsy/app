@@ -2,7 +2,8 @@
 
 <head>
     <title>英雄联盟(简洁版)</title>
-    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKFZCdH1TgoF5NPWr9U6_c7Q5P-OakS7vv2Q&usqp=CAU">
+    <link rel="icon"
+        href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKFZCdH1TgoF5NPWr9U6_c7Q5P-OakS7vv2Q&usqp=CAU">
     <link rel="stylesheet" href="https://cdn.acwing.com/static/jquery-ui-dist/jquery-ui.min.css">
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
@@ -11,9 +12,9 @@
 <body style="margin: 0">
     <div id="game_0"></div>
     <script type="module">
-        import {Game} from "{% static 'js/dist/game.js' %}";
-        $(document).ready(function(){
-            let game = new Game("game_0");
+        import { Game } from "{% static 'js/dist/game.js' %}";
+        $(document).ready(function () {
+            let game = new Game("game_0", "{{ access }}", "{{ refresh }}");
         });
     </script>
 </body>

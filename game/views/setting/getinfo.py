@@ -1,21 +1,19 @@
-from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from game.models.player.player import Player
 
 
+class InfoView(APIView):
+    permission_classes = ([IsAuthenticated])
 
-def getinfo(request):
-    user = request.user
-    if not user.is_authenticated:
-        return JsonResponse({
-            'result': "未登录"
-        })
-    else:
+    def get(self, request):
+        user = request.user
         player = Player.objects.get(user=user)
-        return JsonResponse({
+        return Response({
             'result': "success",
             'username': player.user.username,
             'score': player.score,
             'money': player.money,
             'tool': player.tool,
         })
-

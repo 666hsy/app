@@ -4,6 +4,7 @@ class GameSetting {
         this.hero = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
         this.score = this.root.$login.score;
         this.money = this.root.$login.money;
+        this.hero = 0;
         this.$setting = $(`
 <div class="game-setting">
     <audio id="hero6">
@@ -40,6 +41,9 @@ class GameSetting {
         <div class='game-setting-origin'>
             恢复默认
         </div>
+    </div>
+    <div class='game-setting-logout'>
+        退出登录
     </div>
     <div class='game-turn-back'>
         返回
@@ -83,31 +87,31 @@ class GameSetting {
             outer.root.$menu.show();
         });
         this.$img_1.click(function () {
-            outer.hero = "../../static/image/setting/1.jpg";
+            outer.hero = 1;  //"../../static/image/setting/1.jpg";
             alert("已选择：hero1");
         });
         this.$img_2.click(function () {
-            outer.hero = "../../static/image/setting/2.jpg";
+            outer.hero = 2;//"../../static/image/setting/2.jpg";
             alert("已选择：hero2");
         });
         this.$img_3.click(function () {
-            outer.hero = "../../static/image/setting/3.jpg";
+            outer.hero = 3;//"../../static/image/setting/3.jpg";
             alert("已选择：hero3");
         });
         this.$img_4.click(function () {
-            outer.hero = "../../static/image/setting/4.jpg";
+            outer.hero = 4;//"../../static/image/setting/4.jpg";
             alert("已选择：hero4");
         });
         this.$img_5.click(function () {
-            outer.hero = "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
+            outer.hero = 5;//"https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
             outer.bgSound_hero5.play();
         });
         this.$img_6.click(function () {
-            outer.hero = "https://img.anfensi.com/upload/2019-3/201932790313858.png";
+            outer.hero = 6;//"https://img.anfensi.com/upload/2019-3/201932790313858.png";
             outer.bgSound_hero6.play();
         });
         this.$img_7.click(function () {
-            outer.hero = "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
+            outer.hero = 7;//"https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
             alert("已选择：hero7");
         });
         this.$game_origin.click(function () {

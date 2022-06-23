@@ -1,5 +1,5 @@
 class Player extends GameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, charst, hero) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -14,7 +14,8 @@ class Player extends GameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.charst = charst;
+        this.hero = hero;
         this.eps = 0.01;
         this.friction = 0.9;
         this.spent_time = 0;
@@ -28,62 +29,60 @@ class Player extends GameObject {
         this.tool = String(this.tool);
         if (this.tool.indexOf("a") != -1)
             this.speed += 0.03
-        if (this.is_me) {
+        if (this.charst !== "rebort") {
             this.img = new Image();
             this.skill_1_codetime = 1;
-            this.img.src = this.playground.root.$setting.hero;
 
             this.fireball_img = new Image();
             this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
 
-
             this.skill_2_codetime = 3;  // 单位：秒
             //默认英雄
-            if (this.img.src === "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500") {
-                this.hero = 0;
+            if (this.hero === 0) {
+                this.img.src = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
             }
 
             //英雄1
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/1.jpg") {
-                this.hero = 1;
+            if (this.hero === 1) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/1.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://img1.baidu.com/it/u=2948371691,2478431799&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=397";
             }
             //英雄2
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/2.jpg") {
-                this.hero = 2;
+            if (this.hero === 2) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/2.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFGuC8c9p03raAbhftNwlIiygWHBWkmmS4Iw&usqp=CAU";
             }
             //英雄3
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/3.jpg") {
-                this.hero = 3;
+            if (this.hero === 3) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/3.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRES0417NmPHd2BrpTLF12E91uASVYCivk-0Q&usqp=CAU";
             }
             //英雄4
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/4.jpg") {
-                this.hero = 4;
+            if (this.hero === 4) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/4.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://www.yuanaiv.top/static/image/setting/hero.jpg";
             }
             //英雄5
-            if (this.img.src === "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png") {
-                this.hero = 5;
+            if (this.hero === 5) {
+                this.img.src = "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/Ezreal_RisingSpellForce.png";
             }
             //英雄6
-            if (this.img.src === "https://img.anfensi.com/upload/2019-3/201932790313858.png") {
-                this.hero = 6;
+            if (this.hero === 6) {
+                this.img.src = "https://img.anfensi.com/upload/2019-3/201932790313858.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/TeemoRCast.png";
             }
             //英雄7
-            if (this.img.src === "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png") {
-                this.hero = 7;
+            if (this.hero === 7) {
+                this.img.src = "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AurelionSolW.png";
             }
@@ -92,9 +91,9 @@ class Player extends GameObject {
 
     start() {
 
-        if (this.is_me)
+        if (this.charst === "me")
             this.add_listening_events();
-        else {
+        if (this.charst === "rebort") {
             let tx = Math.random() * this.playground.virtual_map_width;
             let ty = Math.random() * this.playground.virtual_map_height;
             this.move_to(tx, ty);
@@ -115,6 +114,7 @@ class Player extends GameObject {
 
             if (e.which === 3)  //鼠标右键
             {
+                if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return;
                 new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
                 outer.move_to(tx, ty);
             }
@@ -177,7 +177,7 @@ class Player extends GameObject {
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
-            if (this.is_me)
+            if (this.charst === "me")
                 color = "red";
             let speed = this.speed * 3;
             let move_length = 0.8;
@@ -195,7 +195,7 @@ class Player extends GameObject {
         }
 
         else if (skill === "cure") {
-            if (this.radius < 0.05 && this.is_me) {
+            if (this.radius < 0.05 && this.charst != "enemy") {
                 this.speed /= 1.2;
                 this.radius += 0.01;
                 this.skill_2_codetime = 3;
@@ -285,16 +285,16 @@ class Player extends GameObject {
 
     update() {
 
-        if (this.is_me && this.playground.focus_player === this) {
+        if (this.charst === "me" && this.playground.focus_player === this) {
             this.playground.re_calculate_cx_cy(this.x, this.y);
         }
 
 
         this.spent_time += this.timedelta / 1000;
-        if (this.is_me)
+        if (this.charst === "me")
             this.update_coldtime();
 
-        if (!this.is_me && this.spent_time > 4 && Math.random() < 1 / 300.0 && this.speed != 0) {  //机器放技能
+        if (this.charst === "rebort" && this.spent_time > 4 && Math.random() < 1 / 300.0 && this.speed != 0) {  //机器放技能
             let player = this.playground.players[0];
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 0.3;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 0.3;
@@ -314,7 +314,7 @@ class Player extends GameObject {
             if (this.move_length < this.eps) {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
-                if (!this.is_me) {
+                if (this.charst === "rebort") {
                     let tx = Math.random() * this.playground.virtual_map_width;
                     let ty = Math.random() * this.playground.virtual_map_height;
                     this.move_to(tx, ty);
@@ -350,7 +350,7 @@ class Player extends GameObject {
                 this.cold_pass_time = 0
             }
         }
-        if (this.is_me) {
+        if (this.charst !== "rebort") {
             if (this.shield && this.shield_pass_time <= 2) {
                 this.shield_pass_time += this.timedelta / 1000;
 
@@ -385,7 +385,8 @@ class Player extends GameObject {
             this.ctx.clip();
             this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
-            this.render_skill_coldtime();
+            if (this.charst === "me")
+                this.render_skill_coldtime();
         }
 
         else {
@@ -458,7 +459,7 @@ class Player extends GameObject {
 
 
             if (this.radius < this.eps) {
-                if (this.is_me === true) {
+                if (this.charst === "me") {
                     this.playground.root.$menu.bgSound_lose.play();
                     this.playground.live_count = 10;
                     this.playground.score_board.lose();

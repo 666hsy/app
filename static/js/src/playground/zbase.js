@@ -8,7 +8,7 @@ class GamePlayground {
         this.root.$game.append(this.$playground);
 
         this.bgSound1 = document.getElementById("shoot_ball");
-        this.skills = [];
+
         this.hide();
         this.focus_player = null;
         this.start();
@@ -41,7 +41,6 @@ class GamePlayground {
     }
 
     resize() {
-
         this.scale = this.height;
         if (this.game_map) this.game_map.resize();
     }
@@ -60,7 +59,7 @@ class GamePlayground {
     }
 
 
-    show() {
+    show(mode) {
         this.$playground.show(500);
 
         this.width = this.$playground.width();
@@ -73,19 +72,32 @@ class GamePlayground {
         this.resize();
         this.players = [];
         this.towers = [];
-        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, true));
-        for (let i = 0; i < 10; i++)
-            this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, false));
+        this.skills = [];
+        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, "me", this.root.$setting.hero));
+        if (mode === "single mode") {
+            for (let i = 0; i < 10; i++)
+                this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, "rebort"));
 
-        this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
-        this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
-        this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
-        this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
+            this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+        }
+
+        else if (mode === "multi mode") {
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;
+            let outer = this;
+            this.mps.ws.onopen = function () {
+                outer.mps.send_create_player(outer.root.$login.username, outer.players[0].hero);
+            };
+
+        }
+
 
         this.score_board = new ScoreBoard(this);
         this.notice_board = new NoticeBoard(this);
 
-        // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
         this.focus_player = this.players[0];
 
 
@@ -99,6 +111,7 @@ class GamePlayground {
 
         while (this.skills && this.skills.length > 0)
             this.skills[0].destroy();
+
 
         if (this.game_map) {
             this.game_map.destroy();

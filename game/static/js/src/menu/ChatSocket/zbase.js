@@ -28,6 +28,18 @@ class ChatSocket {
         }))
     }
 
+    send_create_player(username, hero) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "create_player",
+            'uuid': outer.uuid,
+            'username': username,
+            'hero': hero,
+        }));
+
+
+    }
+
     add_score(username) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'add',
@@ -35,7 +47,7 @@ class ChatSocket {
         }))
     }
 
-    add_money(username,money) {
+    add_money(username, money) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'add_money',
             'username': username,
@@ -43,12 +55,12 @@ class ChatSocket {
         }))
     }
 
-    buy(username,name,id) {
+    buy(username, name, id) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'buy',
             'username': username,
             'name': name,
-            'id':id,
+            'id': id,
         }))
     }
 
@@ -77,7 +89,7 @@ class ChatSocket {
         }))
     }
     receive_message(username, time, text) {
-        if(username!=this.menu.root.$login.username)
+        if (username != this.menu.root.$login.username)
             this.menu.chat_field.add_message(username, time, text);
     }
 

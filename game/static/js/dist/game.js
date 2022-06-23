@@ -27,7 +27,7 @@ class GameLogin {
                 <input type="text" placeholder="验证码">
             </div>
             <div class="game-login-item2">
-                <canvas id="canvas"></canvas>
+                <canvas id="canvas" width="100" height="35"></canvas>
             </div>
         </div>
 
@@ -41,11 +41,9 @@ class GameLogin {
         <div class="game-login-option">
             注册
         </div>
-        <div class = "game-login-qq">
-            <image width="30" src="https://yeahye.com/media/image/qq_logo.jpg">
-            <div>
-                QQ一键登录
-            </div>
+        <image width="30" src="https://yeahye.com/media/image/qq_logo.jpg">
+        <div class="game-login-qq">
+            QQ一键登录
         </div>
     </div>
 
@@ -102,7 +100,7 @@ class GameLogin {
         this.$register_error_message = this.$register.find(".game-login-error-message");
         this.$register_login = this.$register.find(".game-login-option");
 
-        this.$qq_login = this.$login.find('.game-login-qq img');
+        this.$qq_login = this.$login.find('.game-login-login img');
 
         this.start();
         this.root.$game.append(this.$login);
@@ -163,11 +161,25 @@ class GameLogin {
     }
 
 
-
     start() {
+        localStorage.removeItem('access');
         this.show_num = [];
         this.draw(this.show_num);
-        this.getinfo();
+        if (this.root.access) {
+            this.refresh_jwt_token();
+            this.getinfo();
+        }
+        else {
+            if (localStorage.getItem('access')) {
+                // console.log(localStorage.getItem('access'));
+                this.refresh_jwt_token();
+                this.root.access = localStorage.getItem('access');
+                // console.log(this.root.access);
+                this.getinfo();
+            }
+            else
+                this.login();
+        }
         this.add_listening_events();
     }
 
@@ -177,6 +189,9 @@ class GameLogin {
             url: "https://www.yuanaiv.top/setting/getinfo/",
             type: "GET",
             async: false,
+            headers: {
+                'Authorization': "Bearer " + this.root.access,
+            },
             success: function (resp) {
                 if (resp.result === "success") {
                     outer.username = resp.username;
@@ -186,6 +201,7 @@ class GameLogin {
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
+                    // console.log("safsaasd");
                     outer.login();
                 }
             }
@@ -228,48 +244,70 @@ class GameLogin {
         })
     }
 
-    login_on_remote() {  // 在远程服务器上登录
-        let outer = this;
-        let username = this.$login_username.val();
-        let password = this.$login_password.val();
-        let code = this.$login_code.val();
-        let num = outer.show_num.join("");
-        if (num != code) {
-            outer.$login_error_message.html("验证码错误！");
-            outer.show_num = [];
-            outer.draw(outer.show_num);
-            return false;
+    login_on_remote(username, password, flag) {  // 在远程服务器上登录
+        username = username || this.$login_username.val();
+        password = password || this.$login_password.val();
+        if (!flag) {
+            let code = this.$login_code.val();
+            let num = this.show_num.join("");
+            if (num != code) {
+                this.$login_error_message.html("验证码错误！");
+                this.show_num = [];
+                this.draw(this.show_num);
+                return false;
+            }
+
+            this.$login_error_message.empty();
         }
 
-        this.$login_error_message.empty();
-
         $.ajax({
-            url: "https://www.yuanaiv.top/setting/login/",
-            type: "GET",
+            url: "https://www.yuanaiv.top/setting/token/",
+            type: "POST",
             data: {
                 username: username,
                 password: password,
             },
-            success: function (resp) {
-                if (resp.result === "success") {
-                    location.reload();
-                } else {
-                    outer.$login_error_message.html(resp.result);
-                }
+            success: resp => {
+                this.root.access = resp.access;
+                this.root.refresh = resp.refresh;
+                localStorage.setItem('access', resp.access);
+                localStorage.setItem('refresh', resp.refresh);
+                this.refresh_jwt_token();
+                this.getinfo();
+                // console.log(resp.access)
+
+            },
+            error: () => {
+                this.$login_error_message.html("用户名或密码错误");
             }
+
         });
     }
 
-    logout_on_remote() {  // 在远程服务器上登出
-        $.ajax({
-            url: "https://www.yuanaiv.top/setting/logout/",
-            type: "GET",
-            success: function (resp) {
-                if (resp.result === "success") {
-                    location.reload();
+    refresh_jwt_token() {
+        setInterval(() => {
+            $.ajax({
+                url: "https://www.yuanaiv.top/setting/token/refresh/",
+                type: "POST",
+                data: {
+                    refresh: this.root.refresh,
+                },
+                success: resp => {
+                    localStorage.removeItem('access');
+                    this.root.access = resp.access;
+                    localStorage.setItem('access', resp.access);
                 }
-            }
-        });
+            });
+        }, 9.5 * 60 * 1000);
+    }
+
+
+    logout_on_remote() {  // 在远程服务器上登出
+        this.root.access = "";
+        this.root.refresh = "";
+        location.href = "/";
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
     }
 
 
@@ -284,7 +322,6 @@ class GameLogin {
     }
 
     register_on_remote() {  // 在远程服务器上注册
-        let outer = this;
         let username = this.$register_username.val();
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
@@ -292,17 +329,17 @@ class GameLogin {
 
         $.ajax({
             url: "https://www.yuanaiv.top/setting/register/",
-            type: "GET",
+            type: "POST",
             data: {
                 username: username,
                 password: password,
                 password_confirm: password_confirm,
             },
-            success: function (resp) {
+            success: resp => {
                 if (resp.result === "success") {
-                    location.reload();  // 刷新页面
+                    this.login_on_remote(username, password, true);
                 } else {
-                    outer.$register_error_message.html(resp.result);
+                    this.$register_error_message.html(resp.result);
                 }
             }
         });
@@ -357,6 +394,18 @@ class ChatSocket {
         }))
     }
 
+    send_create_player(username, hero) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "create_player",
+            'uuid': outer.uuid,
+            'username': username,
+            'hero': hero,
+        }));
+
+
+    }
+
     add_score(username) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'add',
@@ -364,7 +413,7 @@ class ChatSocket {
         }))
     }
 
-    add_money(username,money) {
+    add_money(username, money) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'add_money',
             'username': username,
@@ -372,12 +421,12 @@ class ChatSocket {
         }))
     }
 
-    buy(username,name,id) {
+    buy(username, name, id) {
         this.ws.send(JSON.stringify({   //向服务器发送消息
             'event': 'buy',
             'username': username,
             'name': name,
-            'id':id,
+            'id': id,
         }))
     }
 
@@ -406,7 +455,7 @@ class ChatSocket {
         }))
     }
     receive_message(username, time, text) {
-        if(username!=this.menu.root.$login.username)
+        if (username != this.menu.root.$login.username)
             this.menu.chat_field.add_message(username, time, text);
     }
 
@@ -611,9 +660,8 @@ class ChatSocket {
     add_listening_events() {
         let outer = this;
         this.$startgame.click(function () {
-            outer.bgSound1.play();
             outer.hide();
-            outer.root.playground.show();
+            outer.root.$twomenu.show();
         });
 
         this.$shop.click(function () {
@@ -652,7 +700,18 @@ class GameObject {
 
         this.has_called_start = false;  // 是否执行过start函数
         this.timedelta = 0;  // 当前帧距离上一帧的时间间隔
+        this.uuid = this.create_uuid();
     }
+
+    create_uuid() {
+        let res = "";
+        for (let i = 0; i < 8; i++) {
+            let x = parseInt(Math.floor(Math.random() * 10));  // 返回[0, 1)之间的数
+            res += x;
+        }
+        return res;
+    }
+
 
 
     start() {  // 只会在第一帧执行一次
@@ -667,7 +726,7 @@ class GameObject {
     destroy() {  // 删掉该物体
         this.on_destroy();
 
-        for (let i = 0; i < GAME_OBJECTS.length; i ++ ) {
+        for (let i = 0; i < GAME_OBJECTS.length; i++) {
             if (GAME_OBJECTS[i] === this) {
                 GAME_OBJECTS.splice(i, 1);
                 break;
@@ -677,8 +736,8 @@ class GameObject {
 }
 
 let last_timestamp;
-let GAME_ANIMATION = function(timestamp) {  //在这个时刻调用这个函数
-    for (let i = 0; i < GAME_OBJECTS.length; i ++ ) {
+let GAME_ANIMATION = function (timestamp) {  //在这个时刻调用这个函数
+    for (let i = 0; i < GAME_OBJECTS.length; i++) {
         let obj = GAME_OBJECTS[i];
         if (!obj.has_called_start) {
             obj.start();
@@ -901,6 +960,167 @@ class GameMap extends GameObject {
     }
 
 }
+class MultiPlayerSocket {
+    constructor(playground) {
+        this.playground = playground;
+
+        this.ws = new WebSocket("wss://www.yuanaiv.top/wss/socket/multiplayer/");
+
+        this.start();
+    }
+
+    start() {
+        this.receive();
+    }
+
+    receive() {
+        let outer = this;
+
+        this.ws.onmessage = function (e) {
+            let data = JSON.parse(e.data);
+            let uuid = data.uuid;
+            if (uuid === outer.uuid) return false;
+
+            console.log(uuid, outer.uuid);
+
+            let event = data.event;
+            if (event === "create_player") {
+                outer.receive_create_player(uuid, data.username, data.hero);
+            } else if (event === "move_to") {
+                outer.receive_move_to(uuid, data.tx, data.ty);
+            } else if (event === "shoot_fireball") {
+                outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid);
+            } else if (event === "attack") {
+                outer.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
+            } else if (event === "blink") {
+                outer.receive_blink(uuid, data.tx, data.ty);
+            } else if (event === "message") {
+                outer.receive_message(uuid, data.username, data.text);
+            }
+        };
+    }
+
+    send_create_player(username, hero) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "create_player",
+            'uuid': outer.uuid,
+            'username': username,
+            'hero': hero,
+        }));
+    }
+
+    get_player(uuid) {
+        let players = this.playground.players;
+        for (let i = 0; i < players.length; i++) {
+            let player = players[i];
+            if (player.uuid === uuid)
+                return player;
+        }
+
+        return null;
+    }
+
+    receive_create_player(uuid, username, hero) {
+        let player = new Player(
+            this.playground, this.playground.width / 2 / this.playground.scale, 1.5, 0.05, "white", 0.15, "enemy", hero,
+        );
+        console.log(hero);
+        player.uuid = uuid;
+        this.playground.players.push(player);
+    }
+
+    send_move_to(tx, ty) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "move_to",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }));
+    }
+
+    receive_move_to(uuid, tx, ty) {
+        let player = this.get_player(uuid);
+
+        if (player) {
+            player.move_to(tx, ty);
+        }
+    }
+
+    send_shoot_fireball(tx, ty, ball_uuid) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "shoot_fireball",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+            'ball_uuid': ball_uuid,
+        }));
+    }
+
+    receive_shoot_fireball(uuid, tx, ty, ball_uuid) {
+        let player = this.get_player(uuid);
+        if (player) {
+            let fireball = player.shoot_fireball(tx, ty);
+            fireball.uuid = ball_uuid;
+        }
+    }
+
+    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "attack",
+            'uuid': outer.uuid,
+            'attackee_uuid': attackee_uuid,
+            'x': x,
+            'y': y,
+            'angle': angle,
+            'damage': damage,
+            'ball_uuid': ball_uuid,
+        }));
+    }
+
+    receive_attack(uuid, attackee_uuid, x, y, angle, damage, ball_uuid) {
+        let attacker = this.get_player(uuid);
+        let attackee = this.get_player(attackee_uuid);
+
+        if (attacker && attackee) {
+            attackee.receive_attack(x, y, angle, damage, ball_uuid, attacker);
+        }
+    }
+
+    send_blink(tx, ty) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "blink",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }));
+    }
+
+    receive_blink(uuid, tx, ty) {
+        let player = this.get_player(uuid);
+        if (player) {
+            player.blink(tx, ty);
+        }
+    }
+
+    send_message(username, text) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "message",
+            'uuid': outer.uuid,
+            'username': username,
+            'text': text,
+        }));
+    }
+
+    receive_message(uuid, username, text) {
+        this.playground.chat_field.add_message(username, text);
+    }
+}
 class NoticeBoard extends GameObject {
     constructor(playground) {
         super();
@@ -984,7 +1204,7 @@ class Particle extends GameObject
 
 }
 class Player extends GameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, charst, hero) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -999,7 +1219,8 @@ class Player extends GameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.charst = charst;
+        this.hero = hero;
         this.eps = 0.01;
         this.friction = 0.9;
         this.spent_time = 0;
@@ -1013,62 +1234,60 @@ class Player extends GameObject {
         this.tool = String(this.tool);
         if (this.tool.indexOf("a") != -1)
             this.speed += 0.03
-        if (this.is_me) {
+        if (this.charst !== "rebort") {
             this.img = new Image();
             this.skill_1_codetime = 1;
-            this.img.src = this.playground.root.$setting.hero;
 
             this.fireball_img = new Image();
             this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
 
-
             this.skill_2_codetime = 3;  // 单位：秒
             //默认英雄
-            if (this.img.src === "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500") {
-                this.hero = 0;
+            if (this.hero === 0) {
+                this.img.src = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
             }
 
             //英雄1
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/1.jpg") {
-                this.hero = 1;
+            if (this.hero === 1) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/1.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://img1.baidu.com/it/u=2948371691,2478431799&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=397";
             }
             //英雄2
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/2.jpg") {
-                this.hero = 2;
+            if (this.hero === 2) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/2.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFGuC8c9p03raAbhftNwlIiygWHBWkmmS4Iw&usqp=CAU";
             }
             //英雄3
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/3.jpg") {
-                this.hero = 3;
+            if (this.hero === 3) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/3.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRES0417NmPHd2BrpTLF12E91uASVYCivk-0Q&usqp=CAU";
             }
             //英雄4
-            if (this.img.src === "https://www.yuanaiv.top/static/image/setting/4.jpg") {
-                this.hero = 4;
+            if (this.hero === 4) {
+                this.img.src = "https://www.yuanaiv.top/static/image/setting/4.jpg";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://www.yuanaiv.top/static/image/setting/hero.jpg";
             }
             //英雄5
-            if (this.img.src === "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png") {
-                this.hero = 5;
+            if (this.hero === 5) {
+                this.img.src = "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/Ezreal_RisingSpellForce.png";
             }
             //英雄6
-            if (this.img.src === "https://img.anfensi.com/upload/2019-3/201932790313858.png") {
-                this.hero = 6;
+            if (this.hero === 6) {
+                this.img.src = "https://img.anfensi.com/upload/2019-3/201932790313858.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/TeemoRCast.png";
             }
             //英雄7
-            if (this.img.src === "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png") {
-                this.hero = 7;
+            if (this.hero === 7) {
+                this.img.src = "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
                 this.skill_2_img = new Image();
                 this.skill_2_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AurelionSolW.png";
             }
@@ -1077,9 +1296,9 @@ class Player extends GameObject {
 
     start() {
 
-        if (this.is_me)
+        if (this.charst === "me")
             this.add_listening_events();
-        else {
+        if (this.charst === "rebort") {
             let tx = Math.random() * this.playground.virtual_map_width;
             let ty = Math.random() * this.playground.virtual_map_height;
             this.move_to(tx, ty);
@@ -1100,6 +1319,7 @@ class Player extends GameObject {
 
             if (e.which === 3)  //鼠标右键
             {
+                if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return;
                 new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
                 outer.move_to(tx, ty);
             }
@@ -1162,7 +1382,7 @@ class Player extends GameObject {
             let angle = Math.atan2(ty - this.y, tx - this.x);
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = "plum";
-            if (this.is_me)
+            if (this.charst === "me")
                 color = "red";
             let speed = this.speed * 3;
             let move_length = 0.8;
@@ -1180,7 +1400,7 @@ class Player extends GameObject {
         }
 
         else if (skill === "cure") {
-            if (this.radius < 0.05 && this.is_me) {
+            if (this.radius < 0.05 && this.charst != "enemy") {
                 this.speed /= 1.2;
                 this.radius += 0.01;
                 this.skill_2_codetime = 3;
@@ -1270,16 +1490,16 @@ class Player extends GameObject {
 
     update() {
 
-        if (this.is_me && this.playground.focus_player === this) {
+        if (this.charst === "me" && this.playground.focus_player === this) {
             this.playground.re_calculate_cx_cy(this.x, this.y);
         }
 
 
         this.spent_time += this.timedelta / 1000;
-        if (this.is_me)
+        if (this.charst === "me")
             this.update_coldtime();
 
-        if (!this.is_me && this.spent_time > 4 && Math.random() < 1 / 300.0 && this.speed != 0) {  //机器放技能
+        if (this.charst === "rebort" && this.spent_time > 4 && Math.random() < 1 / 300.0 && this.speed != 0) {  //机器放技能
             let player = this.playground.players[0];
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 0.3;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 0.3;
@@ -1299,7 +1519,7 @@ class Player extends GameObject {
             if (this.move_length < this.eps) {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
-                if (!this.is_me) {
+                if (this.charst === "rebort") {
                     let tx = Math.random() * this.playground.virtual_map_width;
                     let ty = Math.random() * this.playground.virtual_map_height;
                     this.move_to(tx, ty);
@@ -1335,7 +1555,7 @@ class Player extends GameObject {
                 this.cold_pass_time = 0
             }
         }
-        if (this.is_me) {
+        if (this.charst !== "rebort") {
             if (this.shield && this.shield_pass_time <= 2) {
                 this.shield_pass_time += this.timedelta / 1000;
 
@@ -1370,7 +1590,8 @@ class Player extends GameObject {
             this.ctx.clip();
             this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
-            this.render_skill_coldtime();
+            if (this.charst === "me")
+                this.render_skill_coldtime();
         }
 
         else {
@@ -1443,7 +1664,7 @@ class Player extends GameObject {
 
 
             if (this.radius < this.eps) {
-                if (this.is_me === true) {
+                if (this.charst === "me") {
                     this.playground.root.$menu.bgSound_lose.play();
                     this.playground.live_count = 10;
                     this.playground.score_board.lose();
@@ -1534,6 +1755,7 @@ class ScoreBoard extends GameObject {
             outer.playground.hide();
             outer.playground.root.$menu.bgSound1.pause();
             outer.playground.root.$menu.show();
+
         });
     }
 
@@ -1605,20 +1827,16 @@ class FireBall extends GameObject {
         }
         this.update_move();
 
-        for(let i=0;i<this.playground.players.length;i++)
-        {
-            let player=this.playground.players[i];
-            if(this.player!==player&&this.is_collision(player))
-            {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
             }
         }
 
-        for(let i=0;i<this.playground.towers.length;i++)
-        {
-            let tower=this.playground.towers[i];
-            if(this.player!==tower&&this.is_collision(tower))
-            {
+        for (let i = 0; i < this.playground.towers.length; i++) {
+            let tower = this.playground.towers[i];
+            if (this.player !== tower && this.is_collision(tower)) {
                 this.attack(tower);
             }
         }
@@ -1634,7 +1852,7 @@ class FireBall extends GameObject {
     }
 
     update_attack() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) {
+        for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
@@ -1658,7 +1876,7 @@ class FireBall extends GameObject {
 
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
-        player.is_attacked("fireball",angle, this.damage);
+        player.is_attacked("fireball", angle, this.damage);
         this.destroy();
     }
 
@@ -1676,6 +1894,13 @@ class FireBall extends GameObject {
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
+    }
+    on_destroy() {
+        for (let i = 0; i < this.playground.skills.length; i++) {
+            if (this.playground.skills[i] === this) {
+                this.playground.skills.splice(i, 1);
+            }
+        }
     }
 }
 class IceBall extends GameObject {
@@ -2121,7 +2346,7 @@ class GamePlayground {
         this.root.$game.append(this.$playground);
 
         this.bgSound1 = document.getElementById("shoot_ball");
-        this.skills = [];
+
         this.hide();
         this.focus_player = null;
         this.start();
@@ -2154,7 +2379,6 @@ class GamePlayground {
     }
 
     resize() {
-
         this.scale = this.height;
         if (this.game_map) this.game_map.resize();
     }
@@ -2173,7 +2397,7 @@ class GamePlayground {
     }
 
 
-    show() {
+    show(mode) {
         this.$playground.show(500);
 
         this.width = this.$playground.width();
@@ -2186,19 +2410,32 @@ class GamePlayground {
         this.resize();
         this.players = [];
         this.towers = [];
-        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, true));
-        for (let i = 0; i < 10; i++)
-            this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, false));
+        this.skills = [];
+        this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, "white", 0.15, "me", this.root.$setting.hero));
+        if (mode === "single mode") {
+            for (let i = 0; i < 10; i++)
+                this.players.push(new Player(this, this.width / 2 / this.scale, 1.5, 0.05, this.get_random_color(), 0.15, "rebort"));
 
-        this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
-        this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
-        this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
-        this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 0.5, 0.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 1.5, 1.5, 0.1, "white"));
+            this.towers.push(new Tower(this, 2.5, 2, 0.1, "white"));
+            this.towers.push(new Tower(this, 0.7, 2.5, 0.1, "white"));
+        }
+
+        else if (mode === "multi mode") {
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;
+            let outer = this;
+            this.mps.ws.onopen = function () {
+                outer.mps.send_create_player(outer.root.$login.username, outer.players[0].hero);
+            };
+
+        }
+
 
         this.score_board = new ScoreBoard(this);
         this.notice_board = new NoticeBoard(this);
 
-        // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
         this.focus_player = this.players[0];
 
 
@@ -2212,6 +2449,7 @@ class GamePlayground {
 
         while (this.skills && this.skills.length > 0)
             this.skills[0].destroy();
+
 
         if (this.game_map) {
             this.game_map.destroy();
@@ -2288,9 +2526,6 @@ class SettingBoard {
             <div class='game-setting-score'>
                 天梯分:${this.root.root.$login.score}
             </div>
-            <div class='game-setting-logout'>
-                退出登录
-            </div>
             `);
         this.root.$setting.append(this.$setting_board);
     }
@@ -2310,6 +2545,7 @@ class SettingBoard {
         this.hero = "https://img0.baidu.com/it/u=1484750640,2260383730&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500";
         this.score = this.root.$login.score;
         this.money = this.root.$login.money;
+        this.hero = 0;
         this.$setting = $(`
 <div class="game-setting">
     <audio id="hero6">
@@ -2346,6 +2582,9 @@ class SettingBoard {
         <div class='game-setting-origin'>
             恢复默认
         </div>
+    </div>
+    <div class='game-setting-logout'>
+        退出登录
     </div>
     <div class='game-turn-back'>
         返回
@@ -2389,31 +2628,31 @@ class SettingBoard {
             outer.root.$menu.show();
         });
         this.$img_1.click(function () {
-            outer.hero = "../../static/image/setting/1.jpg";
+            outer.hero = 1;  //"../../static/image/setting/1.jpg";
             alert("已选择：hero1");
         });
         this.$img_2.click(function () {
-            outer.hero = "../../static/image/setting/2.jpg";
+            outer.hero = 2;//"../../static/image/setting/2.jpg";
             alert("已选择：hero2");
         });
         this.$img_3.click(function () {
-            outer.hero = "../../static/image/setting/3.jpg";
+            outer.hero = 3;//"../../static/image/setting/3.jpg";
             alert("已选择：hero3");
         });
         this.$img_4.click(function () {
-            outer.hero = "../../static/image/setting/4.jpg";
+            outer.hero = 4;//"../../static/image/setting/4.jpg";
             alert("已选择：hero4");
         });
         this.$img_5.click(function () {
-            outer.hero = "https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
+            outer.hero = 5;//"https://icons.iconarchive.com/icons/fazie69/league-of-legends/256/Ezreal-Pulsefire-without-LoL-logo-icon.png";
             outer.bgSound_hero5.play();
         });
         this.$img_6.click(function () {
-            outer.hero = "https://img.anfensi.com/upload/2019-3/201932790313858.png";
+            outer.hero = 6;//"https://img.anfensi.com/upload/2019-3/201932790313858.png";
             outer.bgSound_hero6.play();
         });
         this.$img_7.click(function () {
-            outer.hero = "https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
+            outer.hero = 7;//"https://gameplus-platform.cdn.bcebos.com/gameplus-platform/upload/file/source/QQ%E6%88%AA%E5%9B%BE20211024095740_1635041048562.png";
             alert("已选择：hero7");
         });
         this.$game_origin.click(function () {
@@ -2520,20 +2759,135 @@ class ShopBoard {
     }
 
 }
-export class Game{
-    constructor(id) {
+class TwoGameMenu {
+    constructor(root) {
+        this.root = root;
+        this.$twomenu = $(`
+<div class="game-twomenu">
+    <audio id="bgMusic">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201604/7170.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="unstop">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10598.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="legnerdy">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10597.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="godlike">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10596.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="domainting">
+        <source src="https://downsc.chinaz.net/Files/DownLoad/sound1/201809/10595.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="win">
+        <source src="https://downsc.chinaz.net/files/download/sound1/201406/4507.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="reward-bgm" loop>
+        <source src="./../static/audio/background2.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="shoot_ball">
+        <source src="https://ppt-mp3cdn.hrxz.com/d/file/filemp3/hrxz.com-o20p0xghg2f48281.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="lose">
+        <source src="https://ppt-mp3cdn.hrxz.com/d/file/filemp3/hrxz.com-22hqfrdcolg22515.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="select-hero" loop>
+        <source src="https://downsc.chinaz.net/files/download/sound1/201406/4539.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="game-twomenu-field">
+        <div class="game-menu-field-item game-menu-field-item-startgame">
+            单人模式
+        </div>
+        <br>
+        <div class="game-menu-field-item game-menu-field-item-shop">
+            多人模式
+        </div>
+        <br>
+        <div class="game-menu-field-item game-menu-field-item-setting">
+            返回
+        </div>
+    </div>
+</div>
+`);
+        this.$twomenu.hide();
+
+
+        this.root.$game.append(this.$twomenu);
+        this.$single = this.$twomenu.find('.game-menu-field-item-startgame');
+        this.$multi = this.$twomenu.find('.game-menu-field-item-shop');
+        this.$back = this.$twomenu.find('.game-menu-field-item-setting');
+
+        this.bgSound1 = document.getElementById("bgMusic");
+        this.bgSound2 = document.getElementById("reward-bgm");
+        this.bgSound3 = document.getElementById("shoot_ball");
+        this.bgSound_lose = document.getElementById("lose");
+        this.bgSound_hero = document.getElementById("select-hero");
+        this.bgSound_unstop = document.getElementById("unstop");
+        this.bgSound_lendy = document.getElementById("legnerdy");
+        this.bgSound_godlike = document.getElementById("godlike");
+        this.bgSound_domainting = document.getElementById("domainting");
+        this.bgSound_win = document.getElementById("win");
+
+
+        this.start();
+    }
+    start() {
+        this.add_listening_events();
+    }
+    add_listening_events() {
+        let outer = this;
+        this.$single.click(function () {
+            outer.bgSound1.play();
+            outer.hide();
+            outer.root.playground.show("single mode");
+        });
+
+        this.$multi.click(function () {
+            outer.bgSound1.play();
+            outer.hide();
+            outer.root.playground.show("multi mode");
+        });
+
+        this.$back.click(function () {
+            outer.hide();
+            outer.root.$menu.show();
+        });
+    }
+
+    show() {
+        this.$twomenu.show(500);
+    }
+
+    hide() {
+        this.$twomenu.hide(500);
+    }
+}
+export class Game {
+    constructor(id, access, refresh) {
         this.id = id;
         this.$game = $('#' + id);
-        this.$reward=new GameReward(this);
+        this.access = access;
+        this.refresh = refresh;
+        this.$reward = new GameReward(this);
         this.playground = new GamePlayground(this);
         this.$menu = new GameMenu(this);
+        this.$twomenu = new TwoGameMenu(this);
         this.$login = new GameLogin(this);
         this.$shop = new GameShop(this);
         this.$setting = new GameSetting(this);
         this.start();
     }
-    start()
-    {
+    start() {
 
     }
 }

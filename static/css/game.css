@@ -27,21 +27,19 @@
     border-radius: 5px;
 }
 
-.game-login-qq {
-    display: block;
-    height: 7vh;
-}
-
-.game-login-qq>img {
+.game-login-login>img {
     position: relative;
-    top: 50%;
+    top: 5%;
     left: 50%;
     transform: translate(-50%, -50%);
     cursor: pointer;
 }
 
-.game-login-qq>div {
+.game-login-qq {
     padding-top: 10px;
+    position: relative;
+    top: 0%;
+    left: 0%;
     color: white;
     font-size: 1.5vh;
     text-align: center;
@@ -134,8 +132,8 @@
 .game-login-error-message {
     color: red;
     font-size: 2vh;
-    display: inline;
-    float: left;
+    /* display: inline; */
+    /* float: left; */
     padding-left: 1vw;
 }
 
@@ -232,11 +230,26 @@
     user-select: none;
 }
 
+.game-twomenu {
+    width: 100%;
+    height: 100%;
+    background-image: url("https://gimg2.baidu.com/image_search/src=http%3A%2F%2Finews.gtimg.com%2Fnewsapp_match%2F0%2F11156556256%2F0.jpg&refer=http%3A%2F%2Finews.gtimg.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg");
+    background-size: 100% 100%;
+    user-select: none;
+}
+
 .game-menu-field {
     width: 20vw;
     position: relative;
     top: 53%;
     left: 12%;
+}
+
+.game-twomenu-field {
+    width: 20vw;
+    position: relative;
+    top: 32%;
+    left: 40%;
 }
 
 .game-menu-field-item {

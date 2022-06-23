@@ -104,9 +104,8 @@ class GameMenu {
     add_listening_events() {
         let outer = this;
         this.$startgame.click(function () {
-            outer.bgSound1.play();
             outer.hide();
-            outer.root.playground.show();
+            outer.root.$twomenu.show();
         });
 
         this.$shop.click(function () {

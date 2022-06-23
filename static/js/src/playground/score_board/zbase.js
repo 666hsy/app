@@ -26,6 +26,7 @@ class ScoreBoard extends GameObject {
             outer.playground.hide();
             outer.playground.root.$menu.bgSound1.pause();
             outer.playground.root.$menu.show();
+
         });
     }
 

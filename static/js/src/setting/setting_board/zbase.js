@@ -8,9 +8,6 @@ class SettingBoard {
             <div class='game-setting-score'>
                 天梯分:${this.root.root.$login.score}
             </div>
-            <div class='game-setting-logout'>
-                退出登录
-            </div>
             `);
         this.root.$setting.append(this.$setting_board);
     }

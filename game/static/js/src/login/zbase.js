@@ -27,7 +27,7 @@ class GameLogin {
                 <input type="text" placeholder="验证码">
             </div>
             <div class="game-login-item2">
-                <canvas id="canvas"></canvas>
+                <canvas id="canvas" width="100" height="35"></canvas>
             </div>
         </div>
 
@@ -41,11 +41,9 @@ class GameLogin {
         <div class="game-login-option">
             注册
         </div>
-        <div class = "game-login-qq">
-            <image width="30" src="https://yeahye.com/media/image/qq_logo.jpg">
-            <div>
-                QQ一键登录
-            </div>
+        <image width="30" src="https://yeahye.com/media/image/qq_logo.jpg">
+        <div class="game-login-qq">
+            QQ一键登录
         </div>
     </div>
 
@@ -102,7 +100,7 @@ class GameLogin {
         this.$register_error_message = this.$register.find(".game-login-error-message");
         this.$register_login = this.$register.find(".game-login-option");
 
-        this.$qq_login = this.$login.find('.game-login-qq img');
+        this.$qq_login = this.$login.find('.game-login-login img');
 
         this.start();
         this.root.$game.append(this.$login);
@@ -163,11 +161,25 @@ class GameLogin {
     }
 
 
-
     start() {
+        localStorage.removeItem('access');
         this.show_num = [];
         this.draw(this.show_num);
-        this.getinfo();
+        if (this.root.access) {
+            this.refresh_jwt_token();
+            this.getinfo();
+        }
+        else {
+            if (localStorage.getItem('access')) {
+                // console.log(localStorage.getItem('access'));
+                this.refresh_jwt_token();
+                this.root.access = localStorage.getItem('access');
+                // console.log(this.root.access);
+                this.getinfo();
+            }
+            else
+                this.login();
+        }
         this.add_listening_events();
     }
 
@@ -177,6 +189,9 @@ class GameLogin {
             url: "https://www.yuanaiv.top/setting/getinfo/",
             type: "GET",
             async: false,
+            headers: {
+                'Authorization': "Bearer " + this.root.access,
+            },
             success: function (resp) {
                 if (resp.result === "success") {
                     outer.username = resp.username;
@@ -186,6 +201,7 @@ class GameLogin {
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
+                    // console.log("safsaasd");
                     outer.login();
                 }
             }
@@ -228,48 +244,70 @@ class GameLogin {
         })
     }
 
-    login_on_remote() {  // 在远程服务器上登录
-        let outer = this;
-        let username = this.$login_username.val();
-        let password = this.$login_password.val();
-        let code = this.$login_code.val();
-        let num = outer.show_num.join("");
-        if (num != code) {
-            outer.$login_error_message.html("验证码错误！");
-            outer.show_num = [];
-            outer.draw(outer.show_num);
-            return false;
+    login_on_remote(username, password, flag) {  // 在远程服务器上登录
+        username = username || this.$login_username.val();
+        password = password || this.$login_password.val();
+        if (!flag) {
+            let code = this.$login_code.val();
+            let num = this.show_num.join("");
+            if (num != code) {
+                this.$login_error_message.html("验证码错误！");
+                this.show_num = [];
+                this.draw(this.show_num);
+                return false;
+            }
+
+            this.$login_error_message.empty();
         }
 
-        this.$login_error_message.empty();
-
         $.ajax({
-            url: "https://www.yuanaiv.top/setting/login/",
-            type: "GET",
+            url: "https://www.yuanaiv.top/setting/token/",
+            type: "POST",
             data: {
                 username: username,
                 password: password,
             },
-            success: function (resp) {
-                if (resp.result === "success") {
-                    location.reload();
-                } else {
-                    outer.$login_error_message.html(resp.result);
-                }
+            success: resp => {
+                this.root.access = resp.access;
+                this.root.refresh = resp.refresh;
+                localStorage.setItem('access', resp.access);
+                localStorage.setItem('refresh', resp.refresh);
+                this.refresh_jwt_token();
+                this.getinfo();
+                // console.log(resp.access)
+
+            },
+            error: () => {
+                this.$login_error_message.html("用户名或密码错误");
             }
+
         });
     }
 
-    logout_on_remote() {  // 在远程服务器上登出
-        $.ajax({
-            url: "https://www.yuanaiv.top/setting/logout/",
-            type: "GET",
-            success: function (resp) {
-                if (resp.result === "success") {
-                    location.reload();
+    refresh_jwt_token() {
+        setInterval(() => {
+            $.ajax({
+                url: "https://www.yuanaiv.top/setting/token/refresh/",
+                type: "POST",
+                data: {
+                    refresh: this.root.refresh,
+                },
+                success: resp => {
+                    localStorage.removeItem('access');
+                    this.root.access = resp.access;
+                    localStorage.setItem('access', resp.access);
                 }
-            }
-        });
+            });
+        }, 9.5 * 60 * 1000);
+    }
+
+
+    logout_on_remote() {  // 在远程服务器上登出
+        this.root.access = "";
+        this.root.refresh = "";
+        location.href = "/";
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
     }
 
 
@@ -284,7 +322,6 @@ class GameLogin {
     }
 
     register_on_remote() {  // 在远程服务器上注册
-        let outer = this;
         let username = this.$register_username.val();
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
@@ -292,17 +329,17 @@ class GameLogin {
 
         $.ajax({
             url: "https://www.yuanaiv.top/setting/register/",
-            type: "GET",
+            type: "POST",
             data: {
                 username: username,
                 password: password,
                 password_confirm: password_confirm,
             },
-            success: function (resp) {
+            success: resp => {
                 if (resp.result === "success") {
-                    location.reload();  // 刷新页面
+                    this.login_on_remote(username, password, true);
                 } else {
-                    outer.$register_error_message.html(resp.result);
+                    this.$register_error_message.html(resp.result);
                 }
             }
         });
