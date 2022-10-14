@@ -21,6 +21,8 @@ class Player extends GameObject {
         this.spent_time = 0;
 
         this.cur_skill = null;
+        this.fireballs = [];
+        this.iceballs = [];
 
         this.shield = false;
         this.shield_pass_time = 0;
@@ -91,6 +93,14 @@ class Player extends GameObject {
 
     start() {
 
+        this.playground.player_count ++ ;
+        this.playground.notice_board.write("正在匹配：" + this.playground.player_count + "/3");
+
+        if (this.playground.player_count >= 3) {
+            this.playground.state = "fighting";
+            this.playground.notice_board.write("Fighting");
+        }
+
         if (this.charst === "me")
             this.add_listening_events();
         if (this.charst === "rebort") {
@@ -107,7 +117,9 @@ class Player extends GameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function (e) {
-
+            if (outer.playground.state !== "fighting")
+                return true;
+            console.log("outer.playground.state");
             const rect = outer.ctx.canvas.getBoundingClientRect();
             let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
             let ty = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
@@ -117,6 +129,11 @@ class Player extends GameObject {
                 if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return;
                 new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
                 outer.move_to(tx, ty);
+
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
+
             }
         });
 
@@ -132,18 +149,13 @@ class Player extends GameObject {
             if (e.which === 81) {
                 if (outer.skill_1_codetime <= outer.eps) {
                     outer.cur_skill = "fireball";
+
                     outer.come_skill(outer.mouseX, outer.mouseY, "fireball");
+
                     outer.playground.root.$menu.bgSound3.play();
                     outer.skill_1_codetime = 2;
                 }
             }
-
-            // if (e.which === 32 || e.which === 49) { // 按1键或空格聚焦玩家
-            //     outer.playground.focus_player = outer;
-            //     outer.playground.re_calculate_cx_cy(outer.x, outer.y);
-            //     return false;
-            // }
-
 
             else if (e.which === 70) {
                 if (outer.skill_2_codetime <= outer.eps) {
@@ -169,6 +181,17 @@ class Player extends GameObject {
         });
     }
 
+    destroy_ball(uuid) {
+        for (let i = 0; i < this.fireballs.length; i++) {
+            let ball = this.fireballs[i];
+            if (ball.uuid === uuid) {
+                ball.destroy();
+                break;
+            }
+        }
+    }
+
+
     come_skill(tx, ty, skill)     //放技能函数
     {
         if (skill === "fireball") {
@@ -181,7 +204,12 @@ class Player extends GameObject {
                 color = "red";
             let speed = this.speed * 3;
             let move_length = 0.8;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.fireballs.push(fireball);
+            if (this.playground.mode === "multi mode" && this.charst === "me") {
+                this.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+            }
+            return fireball;
         }
 
         else if (skill === "blink") {
@@ -213,8 +241,13 @@ class Player extends GameObject {
             let color = "MediumSlateBlue";
             let speed = this.speed * 3;
             let move_length = 0.8;
-            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            let iceball = IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.iceballs.push_back(iceball);
             this.skill_2_codetime = 3;
+            if (this.playground.mode === "multi mode" && this.charst === "me") {
+                this.playground.mps.send_iceball(tx, ty, iceball.uuid);
+            }
+            return iceball;
         }
 
         else if (skill === "manyfire") {
@@ -436,6 +469,12 @@ class Player extends GameObject {
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
             this.ctx.fill();
         }
+    }
+
+
+    receive_attack(skill, angle, damage, ball_uuid, attacker) {
+        attacker.destroy_fireball(ball_uuid);
+        this.is_attacked(skill, angle, damage);
     }
 
 

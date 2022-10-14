@@ -63,6 +63,10 @@ class GameMenu {
             设置
         </div>
         <br>
+        <div class="game-menu-field-item game-menu-field-item-rank">
+            排行榜
+        </div>
+        <br>
         <div class="game-menu-field-item game-menu-field-item-reward">
             打赏
         </div>
@@ -83,6 +87,7 @@ class GameMenu {
         this.$reward = this.$menu.find('.game-menu-field-item-reward');
         this.$shop = this.$menu.find('.game-menu-field-item-shop');
         this.$setting = this.$menu.find('.game-menu-field-item-setting');
+        this.$rank = this.$menu.find('.game-menu-field-item-rank');
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
@@ -125,6 +130,10 @@ class GameMenu {
             outer.hide();
             outer.bgSound_hero.play();
             outer.root.$setting.show();
+        });
+        this.$rank.click(function () {
+            outer.hide();
+            outer.root.$rank.show();
         });
     }
 

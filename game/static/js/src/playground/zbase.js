@@ -62,6 +62,7 @@ class GamePlayground {
     show(mode) {
         this.$playground.show(500);
 
+        this.mode = mode;
         this.width = this.$playground.width();
         this.height = this.$playground.height();
 
@@ -94,9 +95,10 @@ class GamePlayground {
 
         }
 
-
+        this.state = "waiting";
         this.score_board = new ScoreBoard(this);
         this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
 
         this.focus_player = this.players[0];
 

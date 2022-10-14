@@ -162,7 +162,6 @@ class GameLogin {
 
 
     start() {
-        localStorage.removeItem('access');
         this.show_num = [];
         this.draw(this.show_num);
         if (this.root.access) {
@@ -171,10 +170,9 @@ class GameLogin {
         }
         else {
             if (localStorage.getItem('access')) {
-                // console.log(localStorage.getItem('access'));
                 this.refresh_jwt_token();
-                this.root.access = localStorage.getItem('access');
-                // console.log(this.root.access);
+                this.root.accesss = localStorage.getItem("access");
+                this.root.refresh = localStorage.getItem("refresh");
                 this.getinfo();
             }
             else
@@ -201,7 +199,6 @@ class GameLogin {
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
-                    // console.log("safsaasd");
                     outer.login();
                 }
             }
@@ -270,11 +267,10 @@ class GameLogin {
             success: resp => {
                 this.root.access = resp.access;
                 this.root.refresh = resp.refresh;
-                localStorage.setItem('access', resp.access);
-                localStorage.setItem('refresh', resp.refresh);
+                localStorage.setItem("access", this.root.access);
+                localStorage.setItem("refresh", this.root.refresh);
                 this.refresh_jwt_token();
                 this.getinfo();
-                // console.log(resp.access)
 
             },
             error: () => {
@@ -285,20 +281,20 @@ class GameLogin {
     }
 
     refresh_jwt_token() {
-        setInterval(() => {
-            $.ajax({
-                url: "https://www.yuanaiv.top/setting/token/refresh/",
-                type: "POST",
-                data: {
-                    refresh: this.root.refresh,
-                },
-                success: resp => {
-                    localStorage.removeItem('access');
-                    this.root.access = resp.access;
-                    localStorage.setItem('access', resp.access);
-                }
-            });
-        }, 9.5 * 60 * 1000);
+        this.root.refresh = localStorage.getItem("refresh");
+        $.ajax({
+            url: "https://www.yuanaiv.top/setting/token/refresh/",
+            type: "POST",
+            data: {
+                refresh: this.root.refresh,
+            },
+            async: false,
+            success: resp => {
+                localStorage.removeItem('access');
+                this.root.access = resp.access;
+                localStorage.setItem('access', resp.access);
+            },
+        });
     }
 
 

@@ -162,7 +162,6 @@ class GameLogin {
 
 
     start() {
-        localStorage.removeItem('access');
         this.show_num = [];
         this.draw(this.show_num);
         if (this.root.access) {
@@ -171,10 +170,9 @@ class GameLogin {
         }
         else {
             if (localStorage.getItem('access')) {
-                // console.log(localStorage.getItem('access'));
                 this.refresh_jwt_token();
-                this.root.access = localStorage.getItem('access');
-                // console.log(this.root.access);
+                this.root.accesss = localStorage.getItem("access");
+                this.root.refresh = localStorage.getItem("refresh");
                 this.getinfo();
             }
             else
@@ -201,7 +199,6 @@ class GameLogin {
                     outer.hide();
                     outer.root.$menu.show();
                 } else {
-                    // console.log("safsaasd");
                     outer.login();
                 }
             }
@@ -270,11 +267,10 @@ class GameLogin {
             success: resp => {
                 this.root.access = resp.access;
                 this.root.refresh = resp.refresh;
-                localStorage.setItem('access', resp.access);
-                localStorage.setItem('refresh', resp.refresh);
+                localStorage.setItem("access", this.root.access);
+                localStorage.setItem("refresh", this.root.refresh);
                 this.refresh_jwt_token();
                 this.getinfo();
-                // console.log(resp.access)
 
             },
             error: () => {
@@ -285,20 +281,20 @@ class GameLogin {
     }
 
     refresh_jwt_token() {
-        setInterval(() => {
-            $.ajax({
-                url: "https://www.yuanaiv.top/setting/token/refresh/",
-                type: "POST",
-                data: {
-                    refresh: this.root.refresh,
-                },
-                success: resp => {
-                    localStorage.removeItem('access');
-                    this.root.access = resp.access;
-                    localStorage.setItem('access', resp.access);
-                }
-            });
-        }, 9.5 * 60 * 1000);
+        this.root.refresh = localStorage.getItem("refresh");
+        $.ajax({
+            url: "https://www.yuanaiv.top/setting/token/refresh/",
+            type: "POST",
+            data: {
+                refresh: this.root.refresh,
+            },
+            async: false,
+            success: resp => {
+                localStorage.removeItem('access');
+                this.root.access = resp.access;
+                localStorage.setItem('access', resp.access);
+            },
+        });
     }
 
 
@@ -619,6 +615,10 @@ class ChatSocket {
             设置
         </div>
         <br>
+        <div class="game-menu-field-item game-menu-field-item-rank">
+            排行榜
+        </div>
+        <br>
         <div class="game-menu-field-item game-menu-field-item-reward">
             打赏
         </div>
@@ -639,6 +639,7 @@ class ChatSocket {
         this.$reward = this.$menu.find('.game-menu-field-item-reward');
         this.$shop = this.$menu.find('.game-menu-field-item-shop');
         this.$setting = this.$menu.find('.game-menu-field-item-setting');
+        this.$rank = this.$menu.find('.game-menu-field-item-rank');
 
         this.bgSound1 = document.getElementById("bgMusic");
         this.bgSound2 = document.getElementById("reward-bgm");
@@ -681,6 +682,10 @@ class ChatSocket {
             outer.hide();
             outer.bgSound_hero.play();
             outer.root.$setting.show();
+        });
+        this.$rank.click(function () {
+            outer.hide();
+            outer.root.$rank.show();
         });
     }
 
@@ -981,8 +986,6 @@ class MultiPlayerSocket {
             let uuid = data.uuid;
             if (uuid === outer.uuid) return false;
 
-            console.log(uuid, outer.uuid);
-
             let event = data.event;
             if (event === "create_player") {
                 outer.receive_create_player(uuid, data.username, data.hero);
@@ -991,7 +994,7 @@ class MultiPlayerSocket {
             } else if (event === "shoot_fireball") {
                 outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid);
             } else if (event === "attack") {
-                outer.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
+                outer.receive_attack(data.skill, uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
             } else if (event === "blink") {
                 outer.receive_blink(uuid, data.tx, data.ty);
             } else if (event === "message") {
@@ -1025,7 +1028,6 @@ class MultiPlayerSocket {
         let player = new Player(
             this.playground, this.playground.width / 2 / this.playground.scale, 1.5, 0.05, "white", 0.15, "enemy", hero,
         );
-        console.log(hero);
         player.uuid = uuid;
         this.playground.players.push(player);
     }
@@ -1058,36 +1060,46 @@ class MultiPlayerSocket {
             'ball_uuid': ball_uuid,
         }));
     }
+    send_shoot_iceball(tx, ty, ball_uuid) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "shoot_iceball",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+            'ball_uuid': ball_uuid,
+        }));
+    }
 
     receive_shoot_fireball(uuid, tx, ty, ball_uuid) {
         let player = this.get_player(uuid);
         if (player) {
-            let fireball = player.shoot_fireball(tx, ty);
+            let fireball = player.come_skill(tx, ty, "fireball");
             fireball.uuid = ball_uuid;
         }
     }
 
-    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid) {
+    send_attack(skill, attackee_uuid, x, y, angle, damage, ball_uuid) {
         let outer = this;
         this.ws.send(JSON.stringify({
-            'event': "attack",
-            'uuid': outer.uuid,
-            'attackee_uuid': attackee_uuid,
+            'event': "attack", 'uuid': outer.uuid, 'attackee_uuid': attackee_uuid,
             'x': x,
             'y': y,
+            'skill': skill,
             'angle': angle,
             'damage': damage,
             'ball_uuid': ball_uuid,
         }));
     }
 
-    receive_attack(uuid, attackee_uuid, x, y, angle, damage, ball_uuid) {
+    receive_attack(skill, uuid, attackee_uuid, x, y, angle, damage, ball_uuid) {
         let attacker = this.get_player(uuid);
         let attackee = this.get_player(attackee_uuid);
 
         if (attacker && attackee) {
-            attackee.receive_attack(x, y, angle, damage, ball_uuid, attacker);
+            attackee.receive_attack(skill, angle, damage, ball_uuid, attacker);
         }
+
     }
 
     send_blink(tx, ty) {
@@ -1226,6 +1238,8 @@ class Player extends GameObject {
         this.spent_time = 0;
 
         this.cur_skill = null;
+        this.fireballs = [];
+        this.iceballs = [];
 
         this.shield = false;
         this.shield_pass_time = 0;
@@ -1296,6 +1310,14 @@ class Player extends GameObject {
 
     start() {
 
+        this.playground.player_count ++ ;
+        this.playground.notice_board.write("正在匹配：" + this.playground.player_count + "/3");
+
+        if (this.playground.player_count >= 3) {
+            this.playground.state = "fighting";
+            this.playground.notice_board.write("Fighting");
+        }
+
         if (this.charst === "me")
             this.add_listening_events();
         if (this.charst === "rebort") {
@@ -1312,7 +1334,9 @@ class Player extends GameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function (e) {
-
+            if (outer.playground.state !== "fighting")
+                return true;
+            console.log("outer.playground.state");
             const rect = outer.ctx.canvas.getBoundingClientRect();
             let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
             let ty = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
@@ -1322,6 +1346,11 @@ class Player extends GameObject {
                 if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return;
                 new ClickParticle(outer.playground, tx, ty, "rgba(255,255,255,0.5)");
                 outer.move_to(tx, ty);
+
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
+
             }
         });
 
@@ -1337,18 +1366,13 @@ class Player extends GameObject {
             if (e.which === 81) {
                 if (outer.skill_1_codetime <= outer.eps) {
                     outer.cur_skill = "fireball";
+
                     outer.come_skill(outer.mouseX, outer.mouseY, "fireball");
+
                     outer.playground.root.$menu.bgSound3.play();
                     outer.skill_1_codetime = 2;
                 }
             }
-
-            // if (e.which === 32 || e.which === 49) { // 按1键或空格聚焦玩家
-            //     outer.playground.focus_player = outer;
-            //     outer.playground.re_calculate_cx_cy(outer.x, outer.y);
-            //     return false;
-            // }
-
 
             else if (e.which === 70) {
                 if (outer.skill_2_codetime <= outer.eps) {
@@ -1374,6 +1398,17 @@ class Player extends GameObject {
         });
     }
 
+    destroy_ball(uuid) {
+        for (let i = 0; i < this.fireballs.length; i++) {
+            let ball = this.fireballs[i];
+            if (ball.uuid === uuid) {
+                ball.destroy();
+                break;
+            }
+        }
+    }
+
+
     come_skill(tx, ty, skill)     //放技能函数
     {
         if (skill === "fireball") {
@@ -1386,7 +1421,12 @@ class Player extends GameObject {
                 color = "red";
             let speed = this.speed * 3;
             let move_length = 0.8;
-            new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.fireballs.push(fireball);
+            if (this.playground.mode === "multi mode" && this.charst === "me") {
+                this.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+            }
+            return fireball;
         }
 
         else if (skill === "blink") {
@@ -1418,8 +1458,13 @@ class Player extends GameObject {
             let color = "MediumSlateBlue";
             let speed = this.speed * 3;
             let move_length = 0.8;
-            new IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            let iceball = IceBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+            this.iceballs.push_back(iceball);
             this.skill_2_codetime = 3;
+            if (this.playground.mode === "multi mode" && this.charst === "me") {
+                this.playground.mps.send_iceball(tx, ty, iceball.uuid);
+            }
+            return iceball;
         }
 
         else if (skill === "manyfire") {
@@ -1644,6 +1689,12 @@ class Player extends GameObject {
     }
 
 
+    receive_attack(skill, angle, damage, ball_uuid, attacker) {
+        attacker.destroy_fireball(ball_uuid);
+        this.is_attacked(skill, angle, damage);
+    }
+
+
     is_attacked(skill, angle, damage) {
         if (this.shield) return;
 
@@ -1827,10 +1878,12 @@ class FireBall extends GameObject {
         }
         this.update_move();
 
-        for (let i = 0; i < this.playground.players.length; i++) {
-            let player = this.playground.players[i];
-            if (this.player !== player && this.is_collision(player)) {
-                this.attack(player);
+        if (this.player.charst !== "enemy") {
+            for (let i = 0; i < this.playground.players.length; i++) {
+                let player = this.playground.players[i];
+                if (this.player !== player && this.is_collision(player)) {
+                    this.attack(player);
+                }
             }
         }
 
@@ -1877,6 +1930,10 @@ class FireBall extends GameObject {
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         player.is_attacked("fireball", angle, this.damage);
+        if (this.playground.mode === "multi mode") {
+            this.playground.mps.send_attack("fireball", player.uuid, player.x, player.y, angle, this.damage, this.uuid);
+        }
+
         this.destroy();
     }
 
@@ -2400,6 +2457,7 @@ class GamePlayground {
     show(mode) {
         this.$playground.show(500);
 
+        this.mode = mode;
         this.width = this.$playground.width();
         this.height = this.$playground.height();
 
@@ -2432,9 +2490,10 @@ class GamePlayground {
 
         }
 
-
+        this.state = "waiting";
         this.score_board = new ScoreBoard(this);
         this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
 
         this.focus_player = this.players[0];
 
@@ -2464,6 +2523,92 @@ class GamePlayground {
         this.$playground.empty();
 
         this.$playground.hide(500);
+    }
+
+}
+class GameRank {
+    constructor(root) {
+        this.root = root;
+        this.$rank = $(`
+<div class="game-rank">
+    <div class="game-rank-table">
+        <div class="game-rank-table-list">
+            <table class="table table-bordered table-hover game-rank-table-score">
+                <thead class="game-rank-table-score-thead">
+                    <tr>
+                        <th>排名</th>
+                        <th>昵称</th>
+                        <th>天梯分</th>
+                    </tr>
+                <thead>
+                <tbody class="game-rank-table-score-tbody">
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    <div class='game-turn-back'>
+        返回
+    </div>
+</div>
+`);
+        this.hide();
+
+        this.root.$game.append(this.$rank);
+        this.score_player = null;
+        this.score_player_time = null;
+        this.$score_table_content = this.$rank.find('.game-rank-table-score-tbody');
+
+        this.$turn_back = this.$rank.find('.game-turn-back');
+
+
+        this.start();
+    }
+
+    start() {
+        this.add_listening_events();
+    }
+
+    add_listening_events() {
+        let outer = this;
+
+        this.$turn_back.click(function () {
+            outer.hide();
+            outer.root.$menu.show();
+        });
+    }
+
+
+    getinfo_rank_score() {
+        if (this.score_player && this.score_player_time && new Date().getTime() - this.score_player_time.getTime() <= 5 * 60 * 1000) return;
+        this.$score_table_content.empty();
+        $.ajax({
+            url: "https://www.yuanaiv.top/rank/ranklist/",
+            type: "GET",
+            headers: {
+                "Authorization": "Bearer " + this.root.access,
+            },
+            success: resp => {
+                if (resp.result === "success") {
+                    this.score_player = resp.players;
+                    this.score_player_time = new Date();
+                    for (let i = 0; i < this.score_player.length; i++) {
+                        let player = this.score_player[i];
+                        let obj = "<tr><td>" + player.rank + "</td><td>" + player.name + "</td><td>" + player.score + "</td></tr>";
+                        this.$score_table_content.append(obj);
+                    }
+                }
+            }
+        });
+    }
+
+
+    show() {
+        this.getinfo_rank_score();
+        this.$rank.show(500);
+    }
+    hide() {
+        this.$rank.hide(500);
     }
 
 }
@@ -2881,6 +3026,7 @@ export class Game {
         this.$reward = new GameReward(this);
         this.playground = new GamePlayground(this);
         this.$menu = new GameMenu(this);
+        this.$rank = new GameRank(this);
         this.$twomenu = new TwoGameMenu(this);
         this.$login = new GameLogin(this);
         this.$shop = new GameShop(this);
